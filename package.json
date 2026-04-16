@@ -1,0 +1,38 @@
+{
+  "name": "openseason",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "node ./node_modules/next/dist/bin/next dev",
+    "build": "node ./node_modules/next/dist/bin/next build",
+    "start": "node ./node_modules/next/dist/bin/next start",
+    "lint": "node ./node_modules/eslint/bin/eslint.js src scripts middleware.ts next.config.ts eslint.config.mjs",
+    "typecheck": "node ./node_modules/typescript/bin/tsc --noEmit",
+    "supabase:check": "node --import tsx scripts/check-supabase.ts",
+    "supabase:seed": "node --import tsx scripts/seed-supabase.ts",
+    "conditions:weather": "node --import tsx scripts/sync-weather.ts",
+    "conditions:alerts": "node --import tsx scripts/sync-alerts.ts",
+    "conditions:snapshots": "node --import tsx scripts/refresh-snapshots.ts",
+    "conditions:sync": "node --import tsx scripts/sync-conditions.ts"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.2",
+    "@types/node": "^20.19.39",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "dotenv": "^17.2.3",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.3",
+    "lightningcss-win32-x64-msvc": "^1.32.0",
+    "tailwindcss": "^4.2.2",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.10.2",
+    "@supabase/supabase-js": "^2.103.0",
+    "next": "^16.2.3",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  }
+}
