@@ -1,7 +1,10 @@
 import Link from "next/link";
+import { ActivityChip, inferActivityKind } from "@/components/ui/activity-chip";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { FitScoreBadge } from "@/components/ui/fit-score-badge";
+import { RiskBadge } from "@/components/ui/risk-badge";
 import type { Destination, Origin } from "@/lib/data/openseason";
 import {
   formatUpdatedAt,
@@ -51,11 +54,17 @@ export function DestinationCard({
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <Badge>{destination.fitLabel}</Badge>
-          <Badge tone="soft">{destination.bestActivity}</Badge>
+          <FitScoreBadge score={destination.fitScore} />
+          <ActivityChip
+            label={destination.bestActivity}
+            kind={inferActivityKind(destination.bestActivity)}
+          />
           <Badge tone="warm">
             {destination.driveHours[origin]}h from {originLabel(origin)}
           </Badge>
+          {destination.riskBadges.slice(0, 2).map((risk) => (
+            <RiskBadge key={risk} label={risk} />
+          ))}
         </div>
       </CardHeader>
 

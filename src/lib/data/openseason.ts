@@ -2,6 +2,7 @@ import {
   calculateTripFitScore,
   labelTripFitScore,
   type ScoreBreakdown,
+  type ScoringContext,
 } from "@/lib/scoring/trip-fit";
 import { destinationSeedMeta } from "@/lib/data/openseason-seed-meta";
 
@@ -2669,6 +2670,63 @@ function getDateBoost(destination: Destination, startDate: string | null | undef
   return score;
 }
 
+export function buildScoringContext(
+  destination: Destination,
+  origin: Origin,
+  tripLength: TripLength,
+  context: RankingContext = {},
+): ScoringContext {
+  const drivingTolerance = context.drivingTolerance ?? planningPreset.drivingToleranceId;
+  const groupProfile = context.groupProfile ?? planningPreset.groupProfile;
+  const tripFormat = context.tripFormat ?? planningPreset.tripFormat;
+  const lodgingStyle = context.lodgingStyle ?? planningPreset.lodgingStyle;
+  const interests = context.interests ?? [];
+
+  const driveHours = destination.driveHours[origin];
+  const driveLimitHours = getDriveHoursLimit(drivingTolerance, tripLength, tripFormat);
+  const month = resolveMonth(context.startDate);
+  const meta = destinationSeedMeta[destination.slug as keyof typeof destinationSeedMeta];
+  const isInBestMonth = month != null && meta?.bestMonths.includes(month) === true;
+  const isInAvoidMonth = month != null && meta?.avoidMonths.includes(month) === true;
+
+  const interestMatches = interests.reduce((total, interest) => {
+    return total + (getInterestMatchScore(destination, interest) > 0 ? 1 : 0);
+  }, 0);
+
+  const groupMatchBoost = clampAdjustment(getGroupBoost(destination, groupProfile));
+  const lodgingMatchBoost = clampAdjustment(getLodgingBoost(destination, lodgingStyle));
+  const tripLengthMatch = destination.idealTripLengths.includes(tripLength);
+
+  return {
+    driveHours,
+    driveLimitHours,
+    isInBestMonth,
+    isInAvoidMonth,
+    interestMatches,
+    totalInterests: interests.length,
+    groupMatchBoost,
+    tripLengthMatch,
+    lodgingMatchBoost,
+  };
+}
+
+function clampAdjustment(value: number) {
+  return Math.max(-15, Math.min(15, value));
+}
+
+function resolveMonth(startDate: string | null | undefined) {
+  if (!startDate) {
+    return null;
+  }
+
+  const parsed = new Date(`${startDate}T12:00:00`);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  return parsed.getMonth() + 1;
+}
+
 export function rankDestinationList(
   destinationList: Destination[],
   origin: Origin,
@@ -2685,6 +2743,10 @@ export function rankDestinationList(
 
   return [...destinationList]
     .map((destination) => {
+      const scoringContext = buildScoringContext(destination, origin, tripLength, context);
+      const contextualFitScore = calculateTripFitScore(destination.breakdown, scoringContext);
+      const contextualFitLabel = labelTripFitScore(contextualFitScore);
+
       const drivePenalty = getDrivePenalty(
         destination.driveHours[origin],
         drivingTolerance,
@@ -2703,8 +2765,10 @@ export function rankDestinationList(
 
       return {
         ...destination,
+        fitScore: contextualFitScore,
+        fitLabel: contextualFitLabel,
         rankingScore: Math.round(
-          destination.fitScore -
+          contextualFitScore -
             drivePenalty -
             tripLengthPenalty +
             interestBoost +

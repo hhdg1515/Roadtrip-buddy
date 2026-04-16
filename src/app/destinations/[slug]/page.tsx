@@ -1,8 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ActivityChip, inferActivityKind } from "@/components/ui/activity-chip";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { FitScoreBadge } from "@/components/ui/fit-score-badge";
+import { PlanBCard } from "@/components/ui/plan-b-card";
+import { RiskBadge } from "@/components/ui/risk-badge";
 import { planningPreset } from "@/lib/data/openseason";
 import { getDestinationBySlugFromRepository } from "@/lib/data/repository";
 import {
@@ -55,6 +59,7 @@ export default async function DestinationPage({ params }: PageProps) {
               {destination.currentVerdict}
             </p>
             <div className="flex flex-wrap gap-2">
+              <FitScoreBadge score={destination.fitScore} className="bg-white/15" />
               {destination.collections.map((item) => (
                 <Badge key={item} className="bg-white/15 text-white">
                   {item}
@@ -63,6 +68,11 @@ export default async function DestinationPage({ params }: PageProps) {
               <Badge className="bg-white/15 text-white">
                 {destination.driveHours[planningPreset.origin]}h from Bay Area
               </Badge>
+            </div>
+            <div className="flex flex-wrap gap-2 pt-1">
+              {destination.riskBadges.map((risk) => (
+                <RiskBadge key={risk} label={risk} className="bg-white/12 text-white" />
+              ))}
             </div>
           </div>
 
@@ -73,7 +83,12 @@ export default async function DestinationPage({ params }: PageProps) {
                 <h2 className="text-3xl font-semibold">{destination.bestActivity}</h2>
                 <div className="text-right">
                   <p className="text-4xl font-bold">{destination.fitScore}</p>
-                  <p className="text-sm text-white/75">{destination.fitLabel}</p>
+                  <FitScoreBadge
+                    score={destination.fitScore}
+                    showScore={false}
+                    size="sm"
+                    className="mt-2 bg-white/20 text-white"
+                  />
                 </div>
               </div>
             </CardHeader>
@@ -134,7 +149,14 @@ export default async function DestinationPage({ params }: PageProps) {
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <h3 className="text-xl font-semibold">{activity.name}</h3>
-                  <Badge tone="soft">{activity.difficulty}</Badge>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <ActivityChip
+                      label={activity.name}
+                      kind={inferActivityKind(activity.name)}
+                      size="sm"
+                    />
+                    <Badge tone="soft">{activity.difficulty}</Badge>
+                  </div>
                 </div>
                 <p className="mt-3 text-sm text-muted">
                   Best time: {activity.bestTime}
@@ -316,28 +338,20 @@ export default async function DestinationPage({ params }: PageProps) {
               Every destination needs a fallback
             </h2>
           </CardHeader>
-          <CardBody className="space-y-4 text-sm leading-6">
-            <p>
-              <span className="font-semibold">Trigger:</span> {destination.planB.trigger}
-            </p>
-            <p>
-              <span className="font-semibold">Alternative:</span>{" "}
-              {destination.planB.alternative}
-            </p>
-            <p>
-              <span className="font-semibold">Why it still works:</span>{" "}
-              {destination.planB.whyItWorks}
-            </p>
-            <p>
-              <span className="font-semibold">Time difference:</span>{" "}
-              {destination.planB.timeDifference}
-            </p>
-            <div className="pt-2">
+          <CardBody className="space-y-4">
+            <PlanBCard plan={destination.planB} />
+            <div className="flex flex-wrap gap-3 pt-1">
               <Link
                 href={`/plans/${destination.slug}`}
                 className={buttonVariants({ variant: "primary" })}
               >
                 Generate this trip plan
+              </Link>
+              <Link
+                href={`/split-group/${destination.slug}`}
+                className={buttonVariants({ variant: "secondary" })}
+              >
+                Plan for a mixed-energy group
               </Link>
             </div>
           </CardBody>

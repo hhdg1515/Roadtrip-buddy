@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { DestinationCard } from "@/components/home/destination-card";
+import { NowPlanningControls } from "@/components/home/now-planning-controls";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { FitScoreBadge } from "@/components/ui/fit-score-badge";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { getUserPreferences } from "@/lib/account";
 import { getRankedDestinations } from "@/lib/data/repository";
@@ -31,9 +33,16 @@ import {
   toPlanningQueryString,
 } from "@/lib/planning";
 
-export default async function Home() {
+type SearchParams = Record<string, string | string[] | undefined>;
+
+export default async function Home({
+  searchParams,
+}: {
+  searchParams?: Promise<SearchParams>;
+}) {
   const { preferences, user } = await getUserPreferences();
-  const planningState = getPlanningState({}, preferences);
+  const resolvedSearchParams = (await searchParams) ?? {};
+  const planningState = getPlanningState(resolvedSearchParams, preferences);
   const queryString = toPlanningQueryString(planningState);
   const hasSavedDefaults = Boolean(user && preferences.updatedAt);
   const recommendations = await getRankedDestinations(planningState.origin, planningState.tripLength, {
@@ -104,7 +113,8 @@ export default async function Home() {
                 {labelGroupProfile(planningState.groupProfile).toLowerCase()}
               </h2>
             </CardHeader>
-            <CardBody className="space-y-6 text-sm text-white/84">
+            <CardBody className="space-y-5 text-sm text-white/84">
+              <NowPlanningControls state={planningState} />
               <div className="flex flex-wrap gap-2">
                 {planningState.startDate ? (
                   <Badge className="bg-white/16 text-white">
@@ -236,7 +246,7 @@ export default async function Home() {
                   </div>
                   <div className="text-right">
                     <p className="text-3xl font-bold">{destination.fitScore}</p>
-                    <p className="text-sm text-muted">{destination.fitLabel}</p>
+                    <FitScoreBadge score={destination.fitScore} showScore={false} size="sm" className="mt-2" />
                   </div>
                 </div>
                 <div className="mt-4 grid gap-3 text-sm text-foreground sm:grid-cols-2">

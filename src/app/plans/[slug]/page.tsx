@@ -3,7 +3,10 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { FitScoreBadge } from "@/components/ui/fit-score-badge";
 import { FormSubmitButton } from "@/components/ui/form-submit-button";
+import { PlanBCard } from "@/components/ui/plan-b-card";
+import { RiskBadge } from "@/components/ui/risk-badge";
 import { getCurrentUser, getUserPreferences } from "@/lib/account";
 import { getDestinationBySlugFromRepository } from "@/lib/data/repository";
 import { formatWeatherMetrics, getPrimaryAlert } from "@/lib/live-conditions";
@@ -123,7 +126,7 @@ export default async function PlanDetailPage({ params, searchParams }: PageProps
           <CardBody className="space-y-4 text-sm leading-6">
             <div className="flex flex-wrap gap-2">
               {planningState.startDate ? <Badge>{labelPlanningDate(planningState.startDate)}</Badge> : null}
-              <Badge>{destination.fitLabel}</Badge>
+              <FitScoreBadge score={destination.fitScore} />
               <Badge tone="soft">{destination.bestActivity}</Badge>
               <Badge tone="warm">{labelDrivingTolerance(planningState.drivingTolerance)}</Badge>
               <Badge tone="soft">{labelGroupProfile(planningState.groupProfile)}</Badge>
@@ -131,9 +134,7 @@ export default async function PlanDetailPage({ params, searchParams }: PageProps
               <Badge tone="soft">{labelTripIntensity(planningState.tripIntensity)}</Badge>
               <Badge tone="soft">{labelLodgingStyle(planningState.lodgingStyle)}</Badge>
               {destination.riskBadges.map((risk) => (
-                <Badge key={risk} tone="danger">
-                  {risk}
-                </Badge>
+                <RiskBadge key={risk} label={risk} />
               ))}
             </div>
             <div className="flex flex-wrap gap-2">
@@ -231,21 +232,7 @@ export default async function PlanDetailPage({ params, searchParams }: PageProps
             <p className="eyebrow">Plan B</p>
           </CardHeader>
           <CardBody className="space-y-4 text-sm leading-6">
-            <p>
-              <span className="font-semibold">Trigger:</span> {destination.planB.trigger}
-            </p>
-            <p>
-              <span className="font-semibold">Alternative:</span>{" "}
-              {destination.planB.alternative}
-            </p>
-            <p>
-              <span className="font-semibold">Why it works:</span>{" "}
-              {destination.planB.whyItWorks}
-            </p>
-            <p>
-              <span className="font-semibold">Distance / time change:</span>{" "}
-              {destination.planB.timeDifference}
-            </p>
+            <PlanBCard plan={destination.planB} />
             <div className="flex flex-wrap gap-3 pt-2">
               {user ? (
                 <form action={saveTripPlanAction}>
@@ -285,6 +272,14 @@ export default async function PlanDetailPage({ params, searchParams }: PageProps
               >
                 View destination detail
               </Link>
+              {planningState.groupProfile === "mixed" ? (
+                <Link
+                  href={`/split-group/${destination.slug}?${toPlanningQueryString(planningState)}`}
+                  className={buttonVariants({ variant: "secondary" })}
+                >
+                  Plan for a mixed group
+                </Link>
+              ) : null}
             </div>
           </CardBody>
         </Card>
