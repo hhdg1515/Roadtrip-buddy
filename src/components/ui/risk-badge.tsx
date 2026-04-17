@@ -13,40 +13,19 @@ export type RiskKind =
 
 type RiskMeta = {
   label: string;
-  icon: string;
   tone: string;
 };
 
 const riskMeta: Record<RiskKind, RiskMeta> = {
-  heat: { label: "Heat risk", icon: "☀", tone: "bg-sun/14 text-sun" },
-  snow: { label: "Snow risk", icon: "❄", tone: "bg-ocean/12 text-ocean" },
-  "road-closure": {
-    label: "Road closure risk",
-    icon: "⚠",
-    tone: "bg-danger/12 text-danger",
-  },
-  "fire-smoke": {
-    label: "Fire / smoke risk",
-    icon: "🔥",
-    tone: "bg-danger/14 text-danger",
-  },
-  crowding: {
-    label: "Crowding risk",
-    icon: "●",
-    tone: "bg-sun/12 text-sun",
-  },
-  "remote-services": {
-    label: "Remote services",
-    icon: "◎",
-    tone: "bg-muted-soft text-muted",
-  },
-  wind: { label: "Wind risk", icon: "↯", tone: "bg-ocean/10 text-ocean" },
-  "shoulder-season": {
-    label: "Shoulder-season access",
-    icon: "◐",
-    tone: "bg-muted-soft text-muted",
-  },
-  generic: { label: "Condition note", icon: "•", tone: "bg-muted-soft text-muted" },
+  heat: { label: "Heat risk", tone: "border-sun/40 text-sun" },
+  snow: { label: "Snow risk", tone: "border-ocean/35 text-ocean" },
+  "road-closure": { label: "Road closure", tone: "border-danger/35 text-danger" },
+  "fire-smoke": { label: "Fire / smoke", tone: "border-danger/35 text-danger" },
+  crowding: { label: "Crowded", tone: "border-sun/40 text-sun" },
+  "remote-services": { label: "Remote services", tone: "border-line text-muted" },
+  wind: { label: "Wind", tone: "border-ocean/30 text-ocean" },
+  "shoulder-season": { label: "Shoulder season", tone: "border-line text-muted" },
+  generic: { label: "Note", tone: "border-line text-muted" },
 };
 
 export function inferRiskKind(raw: string): RiskKind {
@@ -78,17 +57,14 @@ export function RiskBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold tracking-[0.12em] uppercase",
+        "inline-flex items-center rounded-md border bg-transparent px-2 py-0.5 text-xs font-medium",
         meta.tone,
         className,
       )}
       role="status"
       aria-label={text}
     >
-      <span aria-hidden className="text-sm leading-none">
-        {meta.icon}
-      </span>
-      <span>{text}</span>
+      {text}
     </span>
   );
 }

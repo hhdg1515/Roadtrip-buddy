@@ -29,25 +29,18 @@ export default async function ProfilePage({ searchParams }: PageProps) {
 
   if (!isConfigured) {
     return (
-      <div className="space-y-12 py-10">
+      <div className="space-y-10 py-8">
         <SectionHeading
           eyebrow="Profile"
-          title="Supabase auth is not configured yet"
-          description="Profile, saved trips, and persistent preferences all depend on Supabase auth being available in this environment."
+          title="Supabase auth not configured"
         />
         <Card>
-          <CardHeader>
-            <p className="eyebrow">Setup required</p>
-            <h2 className="display-title text-3xl font-semibold">Add your auth env values first</h2>
-          </CardHeader>
-          <CardBody className="space-y-3 text-sm leading-7 text-muted">
+          <CardBody className="space-y-2 text-sm leading-6 text-muted">
             <p>
-              This page becomes live after `NEXT_PUBLIC_SUPABASE_URL` and a browser-safe
-              Supabase key are available.
+              Profile, saved trips, and persistent preferences need Supabase auth env vars.
             </p>
             <p>
-              Once that is in place, the page will handle magic-link sign-in, preferences, and
-              saved trip access.
+              Add `NEXT_PUBLIC_SUPABASE_URL` and a browser-safe key to activate this page.
             </p>
           </CardBody>
         </Card>
@@ -57,26 +50,25 @@ export default async function ProfilePage({ searchParams }: PageProps) {
 
   if (!user) {
     return (
-      <div className="space-y-12 py-10">
+      <div className="space-y-10 py-8">
         <SectionHeading
           eyebrow="Profile"
-          title="Sign in to save plans and keep conditions attached"
-          description="OpenSeason uses magic-link email login for MVP. It keeps the auth flow light while still unlocking saved trips and persistent preferences."
+          title="Sign in to save plans"
         />
 
         {notice ? <StatusCard tone={notice.tone} title={notice.title} body={notice.body} /> : null}
 
-        <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+        <div className="grid gap-6 lg:grid-cols-[1fr_0.7fr]">
           <Card>
             <CardHeader>
-              <p className="eyebrow">Magic link</p>
-              <h2 className="display-title text-3xl font-semibold">Email sign-in</h2>
+              <p className="text-xs text-muted">Magic link</p>
+              <h2 className="text-lg font-semibold">Email sign-in</h2>
             </CardHeader>
-            <CardBody className="space-y-5">
-              <form action={requestMagicLinkAction} className="space-y-4">
+            <CardBody className="space-y-4">
+              <form action={requestMagicLinkAction} className="space-y-3">
                 <input type="hidden" name="next" value={next} />
-                <div className="space-y-2">
-                  <label htmlFor="email" className="text-sm font-semibold text-foreground">
+                <div className="space-y-1.5">
+                  <label htmlFor="email" className="block text-xs text-muted">
                     Email
                   </label>
                   <Input
@@ -91,23 +83,24 @@ export default async function ProfilePage({ searchParams }: PageProps) {
                   Send magic link
                 </FormSubmitButton>
               </form>
-              <p className="text-sm leading-6 text-muted">
-                The link arrives by email and signs you back into OpenSeason without a password.
+              <p className="text-sm text-muted">
+                The link signs you in without a password.
               </p>
             </CardBody>
           </Card>
 
           <Card>
             <CardHeader>
-              <p className="eyebrow">What unlocks</p>
-              <h2 className="display-title text-3xl font-semibold">Why sign in for MVP</h2>
+              <p className="text-xs text-muted">What unlocks</p>
+              <h2 className="text-lg font-semibold">Why sign in</h2>
             </CardHeader>
-            <CardBody className="space-y-4 text-sm leading-7 text-muted">
-              <p>Saved trip plans stop being dead exports and keep their live-condition context.</p>
-              <p>Your default origin, group style, and activity preferences persist across visits.</p>
+            <CardBody className="space-y-2 text-sm leading-6 text-muted">
+              <p>Saved trips stay attached to live conditions.</p>
+              <p>Origin, group, and activity defaults persist across visits.</p>
               {next !== "/profile" ? (
                 <p>
-                  After sign-in, you can go straight back to <span className="font-semibold text-foreground">{next}</span>.
+                  After sign-in you'll return to{" "}
+                  <span className="font-medium text-foreground">{next}</span>.
                 </p>
               ) : null}
             </CardBody>
@@ -118,23 +111,22 @@ export default async function ProfilePage({ searchParams }: PageProps) {
   }
 
   return (
-    <div className="space-y-12 py-10">
+    <div className="space-y-10 py-8">
       <SectionHeading
         eyebrow="Profile"
-        title="Stored defaults should sharpen ranking, not block exploration"
-        description="Preferences exist so future road-trip decisions start closer to the right answer without turning the product into a setup wizard."
+        title="Defaults that sharpen ranking"
       />
 
       {notice ? <StatusCard tone={notice.tone} title={notice.title} body={notice.body} /> : null}
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3">
         <Card>
           <CardHeader>
-            <p className="eyebrow">Account</p>
-            <h2 className="text-2xl font-semibold tracking-tight">{user.email}</h2>
+            <p className="text-xs text-muted">Account</p>
+            <h2 className="text-base font-semibold">{user.email}</h2>
           </CardHeader>
-          <CardBody className="space-y-4 text-sm leading-6">
-            <p>Magic-link auth is active for this session.</p>
+          <CardBody className="space-y-3 text-sm leading-6">
+            <p className="text-muted">Session active.</p>
             <form action={signOutAction}>
               <FormSubmitButton variant="secondary" pendingLabel="Signing out...">
                 Sign out
@@ -145,37 +137,37 @@ export default async function ProfilePage({ searchParams }: PageProps) {
 
         <Card>
           <CardHeader>
-            <p className="eyebrow">Saved plans</p>
-            <h2 className="text-3xl font-semibold tracking-tight">{savedTrips.length}</h2>
+            <p className="text-xs text-muted">Saved plans</p>
+            <h2 className="text-2xl font-semibold tabular-nums">{savedTrips.length}</h2>
           </CardHeader>
-          <CardBody className="text-sm leading-6">
+          <CardBody className="text-sm text-muted">
             {savedTrips.length > 0
-              ? "Your saved plans now stay connected to destination condition updates."
-              : "No saved plans yet. Save from any generated trip plan to start building your shortlist."}
+              ? "Connected to live condition updates."
+              : "Save from any trip plan to start."}
           </CardBody>
         </Card>
 
         <Card>
           <CardHeader>
-            <p className="eyebrow">Preferences refreshed</p>
-            <h2 className="text-3xl font-semibold tracking-tight">
+            <p className="text-xs text-muted">Preferences updated</p>
+            <h2 className="text-base font-semibold">
               {preferences.updatedAt ? formatUpdatedAt(preferences.updatedAt) : "Not yet"}
             </h2>
           </CardHeader>
-          <CardBody className="text-sm leading-6">
-            This timestamp moves whenever your defaults change.
+          <CardBody className="text-sm text-muted">
+            Moves when your defaults change.
           </CardBody>
         </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <p className="eyebrow">Preference defaults</p>
-          <h2 className="display-title text-3xl font-semibold">Persisted trip setup</h2>
+          <p className="text-xs text-muted">Defaults</p>
+          <h2 className="text-lg font-semibold">Persisted trip setup</h2>
         </CardHeader>
-        <CardBody className="space-y-6">
-          <form action={savePreferencesAction} className="space-y-6">
-            <div className="grid gap-5 md:grid-cols-2">
+        <CardBody className="space-y-5">
+          <form action={savePreferencesAction} className="space-y-5">
+            <div className="grid gap-4 md:grid-cols-2">
               <Field label="Origin city" htmlFor="originCity">
                 <Input id="originCity" name="originCity" defaultValue={preferences.originCity} />
               </Field>
@@ -202,10 +194,10 @@ export default async function ProfilePage({ searchParams }: PageProps) {
               </Field>
             </div>
 
-            <div className="grid gap-5 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-2">
               <Field
                 label="Favorite activities"
-                helper="Comma or line separated. Example: Scenic views, Easy hiking, Good food."
+                helper="Comma separated. Example: Scenic views, Easy hiking."
                 htmlFor="favoriteActivities"
               >
                 <Textarea
@@ -216,7 +208,7 @@ export default async function ProfilePage({ searchParams }: PageProps) {
               </Field>
               <Field
                 label="Avoidances"
-                helper="Use this for things like snow uncertainty, long dirt roads, or heavy crowds."
+                helper="Example: snow uncertainty, long dirt roads, heavy crowds."
                 htmlFor="avoidances"
               >
                 <Textarea
@@ -227,13 +219,7 @@ export default async function ProfilePage({ searchParams }: PageProps) {
               </Field>
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              {preferences.favoriteActivities.map((interest) => (
-                <Badge key={interest}>{interest}</Badge>
-              ))}
-            </div>
-
-            <FormSubmitButton pendingLabel="Saving preferences...">
+            <FormSubmitButton pendingLabel="Saving...">
               Save defaults
             </FormSubmitButton>
           </form>
@@ -255,12 +241,12 @@ function Field({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="space-y-2">
-      <label htmlFor={htmlFor} className="text-sm font-semibold text-foreground">
+    <div className="space-y-1.5">
+      <label htmlFor={htmlFor} className="block text-xs text-muted">
         {label}
       </label>
       {children}
-      {helper ? <p className="text-sm leading-6 text-muted">{helper}</p> : null}
+      {helper ? <p className="text-xs text-muted">{helper}</p> : null}
     </div>
   );
 }
@@ -275,12 +261,10 @@ function StatusCard({
   body: string;
 }>) {
   return (
-    <Card>
-      <CardBody className="flex flex-col gap-3 pt-6 text-sm leading-6">
-        <Badge tone={tone}>{title}</Badge>
-        <p className="text-foreground">{body}</p>
-      </CardBody>
-    </Card>
+    <div className="flex items-center gap-3 rounded-md border border-line bg-card px-4 py-3 text-sm">
+      <Badge tone={tone}>{title}</Badge>
+      <span className="text-muted">{body}</span>
+    </div>
   );
 }
 
@@ -300,49 +284,49 @@ function getProfileNotice(status: string | undefined) {
       return {
         tone: "default" as const,
         title: "Signed in",
-        body: "Your session is active. You can now save plans and persist profile defaults.",
+        body: "Session active.",
       };
     case "signed-out":
       return {
         tone: "soft" as const,
         title: "Signed out",
-        body: "The current session has been cleared.",
+        body: "Session cleared.",
       };
     case "preferences-saved":
       return {
         tone: "default" as const,
         title: "Preferences saved",
-        body: "Your default trip settings were written to Supabase.",
+        body: "Defaults written to Supabase.",
       };
     case "sign-in-required":
       return {
         tone: "warm" as const,
         title: "Sign in required",
-        body: "Saving trips and profile defaults requires an authenticated session.",
+        body: "Saving plans and defaults needs an authenticated session.",
       };
     case "invalid-email":
       return {
         tone: "danger" as const,
         title: "Email looks invalid",
-        body: "Use a real email address so Supabase can send the magic link.",
+        body: "Use a real email so Supabase can send the magic link.",
       };
     case "auth-error":
       return {
         tone: "danger" as const,
         title: "Auth failed",
-        body: "The sign-in step did not complete. Try requesting a fresh magic link.",
+        body: "Try requesting a fresh magic link.",
       };
     case "preferences-error":
       return {
         tone: "danger" as const,
         title: "Preferences failed",
-        body: "The preferences update did not complete. Try again.",
+        body: "The update did not complete. Try again.",
       };
     case "supabase-missing":
       return {
         tone: "danger" as const,
         title: "Supabase unavailable",
-        body: "This environment is missing the auth configuration required for profile features.",
+        body: "Auth configuration is missing in this environment.",
       };
     default:
       return null;

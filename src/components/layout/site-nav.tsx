@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -17,21 +16,16 @@ export function SiteNav() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/25 bg-background/70 backdrop-blur-xl">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-10">
-        <Link href="/" aria-label="OpenSeason home" className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#18323a,#255d6c_52%,#c56d2a)] text-sm font-bold tracking-[0.18em] text-white">
-            OS
-          </div>
-          <div>
-            <p className="text-lg font-semibold tracking-tight">OpenSeason</p>
-            <p className="text-sm text-muted">
-              California road trips ranked for right now
-            </p>
-          </div>
+    <header className="sticky top-0 z-40 border-b border-line bg-background/90 backdrop-blur">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-10">
+        <Link href="/" aria-label="OpenSeason home" className="flex items-center gap-2">
+          <span className="text-lg font-semibold tracking-tight">OpenSeason</span>
+          <span className="hidden text-sm text-muted sm:inline">
+            · California road trips, ranked for now
+          </span>
         </Link>
 
-        <nav aria-label="Primary" className="flex flex-wrap gap-2">
+        <nav aria-label="Primary" className="flex flex-wrap gap-1">
           {navItems.map((item) => {
             const isActive =
               item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
@@ -42,11 +36,10 @@ export function SiteNav() {
                 href={item.href}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  buttonVariants({
-                    variant: isActive ? "primary" : "secondary",
-                    size: "sm",
-                  }),
-                  "min-w-[88px]",
+                  "inline-flex h-9 items-center justify-center rounded-md px-3 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-foreground text-background"
+                    : "text-muted hover:bg-muted-soft hover:text-foreground",
                 )}
               >
                 {item.label}

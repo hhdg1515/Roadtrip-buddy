@@ -17,23 +17,22 @@ export type ActivityKind =
 
 type ActivityMeta = {
   label: string;
-  icon: string;
 };
 
 const activityMeta: Record<ActivityKind, ActivityMeta> = {
-  hiking: { label: "Hiking", icon: "⛰" },
-  skiing: { label: "Skiing", icon: "⛷" },
-  desert: { label: "Desert", icon: "◌" },
-  coast: { label: "Coast", icon: "≈" },
-  wildflowers: { label: "Wildflowers", icon: "✿" },
-  "fall-colors": { label: "Fall colors", icon: "🍂" },
-  "scenic-drive": { label: "Scenic drive", icon: "→" },
-  "cafe-town": { label: "Cafe / town", icon: "☕" },
-  "family-friendly": { label: "Family-friendly", icon: "◆" },
-  "non-hiker-friendly": { label: "Non-hiker friendly", icon: "◇" },
-  waterfalls: { label: "Waterfalls", icon: "∿" },
-  photography: { label: "Photography", icon: "◉" },
-  generic: { label: "Activity", icon: "•" },
+  hiking: { label: "Hiking" },
+  skiing: { label: "Skiing" },
+  desert: { label: "Desert" },
+  coast: { label: "Coast" },
+  wildflowers: { label: "Wildflowers" },
+  "fall-colors": { label: "Fall colors" },
+  "scenic-drive": { label: "Scenic drive" },
+  "cafe-town": { label: "Cafe / town" },
+  "family-friendly": { label: "Family-friendly" },
+  "non-hiker-friendly": { label: "Non-hiker friendly" },
+  waterfalls: { label: "Waterfalls" },
+  photography: { label: "Photography" },
+  generic: { label: "Activity" },
 };
 
 export function inferActivityKind(raw: string): ActivityKind {
@@ -73,19 +72,16 @@ export function ActivityChip({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border text-xs font-semibold tracking-[0.08em]",
-        size === "sm" ? "px-2.5 py-0.5" : "px-3 py-1",
+        "inline-flex items-center rounded-md border text-xs font-medium",
+        size === "sm" ? "px-2 py-0.5" : "px-2.5 py-0.5",
         selected
-          ? "border-ocean bg-ocean text-white shadow-[0_6px_18px_rgba(37,93,108,0.25)]"
-          : "border-line bg-white/65 text-foreground hover:bg-white",
+          ? "border-foreground bg-foreground text-background"
+          : "border-line bg-transparent text-foreground",
         className,
       )}
       aria-pressed={selected}
     >
-      <span aria-hidden className="text-sm leading-none">
-        {meta.icon}
-      </span>
-      <span>{text}</span>
+      {text}
     </span>
   );
 }

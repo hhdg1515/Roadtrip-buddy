@@ -13,16 +13,16 @@ function toneForScore(score: number): FitScoreTone {
 }
 
 const toneClasses: Record<FitScoreTone, string> = {
-  excellent: "bg-pine/15 text-pine",
-  good: "bg-ocean/12 text-ocean",
-  mixed: "bg-sun/14 text-sun",
-  weak: "bg-danger/12 text-danger",
+  excellent: "border-pine/40 text-pine",
+  good: "border-ocean/35 text-ocean",
+  mixed: "border-sun/40 text-sun",
+  weak: "border-danger/35 text-danger",
 };
 
 const sizeClasses: Record<FitScoreBadgeSize, string> = {
-  sm: "px-2.5 py-1 text-[0.65rem]",
-  md: "px-3 py-1.5 text-xs",
-  lg: "px-4 py-2 text-sm",
+  sm: "px-2 py-0.5 text-[0.65rem]",
+  md: "px-2.5 py-0.5 text-xs",
+  lg: "px-3 py-1 text-sm",
 };
 
 export function FitScoreBadge({
@@ -42,7 +42,7 @@ export function FitScoreBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-2 rounded-full font-semibold tracking-[0.14em] uppercase",
+        "inline-flex items-center gap-1.5 rounded-md border bg-transparent font-medium",
         toneClasses[tone],
         sizeClasses[size],
         className,
@@ -51,7 +51,7 @@ export function FitScoreBadge({
     >
       <span>{label}</span>
       {showScore ? (
-        <span className="rounded-full bg-white/55 px-2 py-0.5 text-[0.65em] font-bold tabular-nums text-foreground">
+        <span className="text-foreground/70 tabular-nums">
           {score}
         </span>
       ) : null}

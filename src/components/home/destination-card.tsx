@@ -1,16 +1,14 @@
 import Link from "next/link";
 import { DestinationHeroImage } from "@/components/destinations/destination-hero-image";
-import { ActivityChip, inferActivityKind } from "@/components/ui/activity-chip";
-import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { FitScoreBadge } from "@/components/ui/fit-score-badge";
 import { RiskBadge } from "@/components/ui/risk-badge";
 import type { Destination, Origin } from "@/lib/data/openseason";
+import { getDestinationDecisionStatus } from "@/lib/decision-layer";
 import {
   formatUpdatedAt,
   formatWeatherMetrics,
-  getAlertTone,
   getPrimaryAlert,
 } from "@/lib/live-conditions";
 
@@ -23,112 +21,92 @@ export function DestinationCard({
 }>) {
   const weatherMetrics = formatWeatherMetrics(destination.liveWeather).slice(0, 3);
   const primaryAlert = getPrimaryAlert(destination.activeAlerts);
+  const decision = getDestinationDecisionStatus(destination);
+  const topRisk = destination.riskBadges[0];
 
   return (
-    <Card className="h-full">
-      <CardHeader className="space-y-5">
+    <Card className="flex h-full flex-col">
+      <CardHeader className="space-y-3">
         <DestinationHeroImage
           slug={destination.slug}
           name={destination.name}
           region={destination.region}
           summary={destination.summary}
         />
-        <div
-          className="rounded-[24px] border border-white/30 p-5 text-white"
-          style={{
-            backgroundImage: `linear-gradient(135deg, ${destination.palette[0]}, ${destination.palette[1]} 52%, ${destination.palette[2]})`,
-          }}
-        >
-          <div className="flex items-start justify-between gap-4">
-            <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/78">
-                {destination.region}
-              </p>
-              <h3 className="display-title text-3xl font-semibold">
-                {destination.name}
-              </h3>
-              <p className="max-w-sm text-sm leading-6 text-white/82">
-                {destination.summary}
-              </p>
-            </div>
-            <div className="score-ring flex h-20 w-20 flex-col items-center justify-center rounded-full border border-white/25 text-center text-[#13313a]">
-              <span className="text-2xl font-bold">{destination.fitScore}</span>
-              <span className="text-[0.65rem] font-semibold uppercase tracking-[0.16em]">
-                fit
-              </span>
-            </div>
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 space-y-1">
+            <p className="text-xs text-muted">{destination.region}</p>
+            <h3 className="display-title text-2xl font-semibold leading-tight">
+              {destination.name}
+            </h3>
+          </div>
+          <div className="shrink-0 text-right">
+            <p className="text-3xl font-semibold tabular-nums">{destination.fitScore}</p>
+            <FitScoreBadge score={destination.fitScore} showScore={false} size="sm" className="mt-1" />
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <FitScoreBadge score={destination.fitScore} />
-          <ActivityChip
-            label={destination.bestActivity}
-            kind={inferActivityKind(destination.bestActivity)}
-          />
-          <Badge tone="warm">
-            {destination.driveHours[origin]}h from {originLabel(origin)}
-          </Badge>
-          {destination.riskBadges.slice(0, 2).map((risk) => (
-            <RiskBadge key={risk} label={risk} />
-          ))}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
+          <span>{destination.driveHours[origin]}h from {originLabel(origin)}</span>
+          <span>·</span>
+          <span>{destination.bestActivity}</span>
+          {topRisk ? (
+            <>
+              <span>·</span>
+              <RiskBadge label={topRisk} />
+            </>
+          ) : null}
         </div>
       </CardHeader>
 
-      <CardBody className="flex h-full flex-col gap-5">
-        <div className="space-y-3">
-          {weatherMetrics.length > 0 || primaryAlert ? (
-            <div className="space-y-3 rounded-[22px] border border-white/40 bg-muted-soft/65 p-4">
-              <p className="eyebrow">Live conditions</p>
-              {weatherMetrics.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {weatherMetrics.map((metric) => (
-                    <Badge key={metric} tone="soft">
-                      {metric}
-                    </Badge>
-                  ))}
-                </div>
-              ) : null}
-              {primaryAlert ? (
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge tone={getAlertTone(primaryAlert.severity)}>{primaryAlert.severity}</Badge>
-                  <p className="text-sm leading-6 text-foreground">{primaryAlert.title}</p>
-                </div>
-              ) : (
-                <p className="text-sm leading-6 text-muted">No active weather, park, or route alerts right now.</p>
-              )}
-              {destination.updatedAt ? (
-                <p className="text-xs text-muted">
-                  Refreshed {formatUpdatedAt(destination.updatedAt)}
-                </p>
-              ) : null}
-            </div>
-          ) : null}
+      <CardBody className="flex flex-1 flex-col gap-4">
+        {weatherMetrics.length > 0 || primaryAlert ? (
+          <div className="space-y-1.5 border-t border-line pt-3 text-sm text-muted">
+            {weatherMetrics.length > 0 ? (
+              <p className="text-foreground">{weatherMetrics.join(" · ")}</p>
+            ) : null}
+            {primaryAlert ? (
+              <p className="text-danger">⚠ {primaryAlert.title}</p>
+            ) : null}
+            {destination.updatedAt ? (
+              <p className="text-xs">Updated {formatUpdatedAt(destination.updatedAt)}</p>
+            ) : null}
+          </div>
+        ) : null}
 
-          <div>
-            <p className="eyebrow">Why now</p>
-            <p className="mt-2 text-sm leading-6 text-foreground">
-              {destination.whyNow}
-            </p>
-          </div>
-          <div>
-            <p className="eyebrow">Watch out</p>
-            <p className="mt-2 text-sm leading-6 text-muted">
-              {destination.mainWarning}
-            </p>
-          </div>
+        <div className="space-y-2.5 text-sm leading-6">
+          <p className="text-foreground">
+            <span className="text-xs uppercase tracking-wider text-muted">Why now · </span>
+            {destination.whyNow}
+          </p>
+          <p className="text-muted">
+            <span className="text-xs uppercase tracking-wider">Watch out · </span>
+            {destination.mainWarning}
+          </p>
         </div>
 
-        <div className="mt-auto flex flex-wrap gap-3">
+        {decision.level !== "inform" ? (
+          <p
+            className={
+              decision.level === "block"
+                ? "text-sm text-danger"
+                : "text-sm text-sun"
+            }
+          >
+            {decision.headline}
+          </p>
+        ) : null}
+
+        <div className="mt-auto flex flex-wrap gap-2 pt-2">
           <Link
             href={`/destinations/${destination.slug}`}
-            className={buttonVariants({ variant: "primary" })}
+            className={buttonVariants({ variant: "primary", size: "sm" })}
           >
             View detail
           </Link>
           <Link
             href={`/plans/${destination.slug}`}
-            className={buttonVariants({ variant: "secondary" })}
+            className={buttonVariants({ variant: "secondary", size: "sm" })}
           >
             View plan
           </Link>

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { DestinationCard } from "@/components/home/destination-card";
@@ -180,26 +179,21 @@ export default async function ExplorePage({ searchParams }: PageProps) {
     selectedRegions.length + selectedActivities.length + selectedStyles.length;
 
   return (
-    <div className="space-y-12 py-10">
+    <div className="space-y-10 py-8">
       <SectionHeading
         eyebrow="Explore"
-        title="Browse the current California shortlist"
-        description="Filter by where you want to go, what you want to do, and the trip style. Everything stays ranked by your current brief."
+        title="Browse California, filtered"
       />
 
       <Card>
         <CardHeader>
-          <p className="eyebrow">Current brief</p>
-          <h2 className="display-title text-3xl font-semibold">
-            {labelOrigin(planningState.origin)}, {labelTripLength(planningState.tripLength).toLowerCase()}
+          <p className="text-xs text-muted">Current brief</p>
+          <h2 className="text-lg font-semibold">
+            {labelOrigin(planningState.origin)} · {labelTripLength(planningState.tripLength).toLowerCase()}
           </h2>
         </CardHeader>
-        <CardBody className="space-y-5 text-sm leading-6">
-          <p className="text-muted">
-            Filters are additive within a group and combined across groups. Submit to recompute the
-            shortlist.
-          </p>
-          <form method="get" action="/explore" className="space-y-6">
+        <CardBody className="space-y-4 text-sm leading-6">
+          <form method="get" action="/explore" className="space-y-5">
             <FilterGroup
               legend="Region"
               groupId="regions"
@@ -236,34 +230,34 @@ export default async function ExplorePage({ searchParams }: PageProps) {
                 ))
               : null}
 
-            <div className="flex flex-wrap items-center gap-3">
-              <button type="submit" className={buttonVariants({ variant: "primary" })}>
-                Apply filters
+            <div className="flex flex-wrap items-center gap-2">
+              <button type="submit" className={buttonVariants({ variant: "primary", size: "sm" })}>
+                Apply
               </button>
               {activeFilterCount > 0 ? (
                 <Link
                   href={`/explore?${planningQueryString}`}
-                  className={buttonVariants({ variant: "ghost" })}
+                  className={buttonVariants({ variant: "ghost", size: "sm" })}
                 >
-                  Clear filters
+                  Clear
                 </Link>
               ) : null}
               <Link
                 href={`/plan?${planningQueryString}`}
-                className={buttonVariants({ variant: "secondary" })}
+                className={buttonVariants({ variant: "secondary", size: "sm" })}
               >
                 Retune brief
               </Link>
-              <Badge tone="soft">
-                {filtered.length} of {ranked.length} destinations
-              </Badge>
+              <span className="text-xs text-muted">
+                {filtered.length} of {ranked.length}
+              </span>
             </div>
           </form>
         </CardBody>
       </Card>
 
       {filtered.length > 0 ? (
-        <div className="grid gap-5 lg:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           {filtered.map((destination) => (
             <DestinationCard
               key={destination.slug}
@@ -274,20 +268,14 @@ export default async function ExplorePage({ searchParams }: PageProps) {
         </div>
       ) : (
         <Card>
-          <CardBody className="space-y-3 py-10 text-center">
-            <p className="eyebrow">Nothing matches</p>
-            <p className="text-base leading-7 text-muted">
-              No destinations match the current filter combination. Loosen a filter or retune the
-              brief.
-            </p>
-            <div className="flex justify-center">
-              <Link
-                href={`/explore?${planningQueryString}`}
-                className={buttonVariants({ variant: "primary" })}
-              >
-                Clear filters
-              </Link>
-            </div>
+          <CardBody className="space-y-3 py-8 text-center">
+            <p className="text-sm text-muted">No destinations match. Loosen a filter.</p>
+            <Link
+              href={`/explore?${planningQueryString}`}
+              className={buttonVariants({ variant: "primary", size: "sm" })}
+            >
+              Clear filters
+            </Link>
           </CardBody>
         </Card>
       )}
@@ -306,11 +294,9 @@ function FilterGroup({ legend, groupId, options, selectedIds }: FilterGroupProps
   const selectedSet = new Set(selectedIds);
 
   return (
-    <fieldset className="space-y-3">
-      <legend className="text-[0.7rem] font-semibold tracking-[0.16em] uppercase text-muted">
-        {legend}
-      </legend>
-      <div className="flex flex-wrap gap-2">
+    <fieldset className="space-y-2">
+      <legend className="text-xs text-muted">{legend}</legend>
+      <div className="flex flex-wrap gap-1.5">
         {options.map((option) => {
           const inputId = `${groupId}-${option.id}`;
           const isSelected = selectedSet.has(option.id);
@@ -321,8 +307,8 @@ function FilterGroup({ legend, groupId, options, selectedIds }: FilterGroupProps
               htmlFor={inputId}
               className={
                 isSelected
-                  ? "cursor-pointer rounded-full border border-foreground bg-foreground px-3 py-1.5 text-xs font-semibold tracking-[0.12em] uppercase text-white"
-                  : "cursor-pointer rounded-full border border-white/40 bg-white/55 px-3 py-1.5 text-xs font-semibold tracking-[0.12em] uppercase text-foreground hover:border-foreground/50"
+                  ? "cursor-pointer rounded-md border border-foreground bg-foreground px-2.5 py-1 text-xs font-medium text-background"
+                  : "cursor-pointer rounded-md border border-line bg-transparent px-2.5 py-1 text-xs font-medium text-foreground hover:border-foreground/50"
               }
             >
               <input

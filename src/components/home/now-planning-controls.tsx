@@ -25,29 +25,17 @@ export function NowPlanningControls({
       aria-label="Update the current trip brief"
       className={className}
     >
-      <div className="space-y-5 rounded-[26px] border border-white/18 bg-white/10 p-5 text-white">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="eyebrow text-white/70">Tune the brief</p>
-            <p className="text-sm text-white/82">
-              Change origin, trip length, or start date — rankings recompute.
-            </p>
-          </div>
-          <button type="submit" className={buttonVariants({ variant: "surface", size: "sm" })}>
-            Update
-          </button>
-        </div>
-
+      <div className="space-y-4">
         <SegmentedRow
           name="origin"
-          legend="Starting from"
+          legend="From"
           selected={state.origin}
           options={originOptions}
         />
 
         <SegmentedRow
           name="tripLength"
-          legend="Trip length"
+          legend="Length"
           selected={state.tripLength}
           options={tripLengthOptions}
         />
@@ -55,17 +43,22 @@ export function NowPlanningControls({
         <div>
           <label
             htmlFor="now-start-date"
-            className="block text-[0.7rem] font-semibold tracking-[0.16em] uppercase text-white/72"
+            className="block text-xs text-muted"
           >
             Start date
           </label>
-          <input
-            id="now-start-date"
-            name="startDate"
-            type="date"
-            defaultValue={state.startDate ?? ""}
-            className="mt-2 h-10 w-full max-w-xs rounded-full border border-white/25 bg-white/12 px-4 text-sm text-white placeholder:text-white/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-          />
+          <div className="mt-1.5 flex gap-2">
+            <input
+              id="now-start-date"
+              name="startDate"
+              type="date"
+              defaultValue={state.startDate ?? ""}
+              className="h-9 flex-1 rounded-md border border-line bg-background px-3 text-sm text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ocean/35"
+            />
+            <button type="submit" className={buttonVariants({ variant: "primary", size: "sm" })}>
+              Update
+            </button>
+          </div>
         </div>
       </div>
 
@@ -99,10 +92,8 @@ function SegmentedRow<TValue extends Origin | TripLength>({
 }: SegmentedRowProps<TValue>) {
   return (
     <fieldset>
-      <legend className="text-[0.7rem] font-semibold tracking-[0.16em] uppercase text-white/72">
-        {legend}
-      </legend>
-      <div className="mt-2 flex flex-wrap gap-2">
+      <legend className="text-xs text-muted">{legend}</legend>
+      <div className="mt-1.5 flex flex-wrap gap-1.5">
         {options.map((option) => {
           const inputId = `${name}-${option.id}`;
           const isSelected = selected === option.id;
@@ -112,8 +103,8 @@ function SegmentedRow<TValue extends Origin | TripLength>({
               htmlFor={inputId}
               className={
                 isSelected
-                  ? "cursor-pointer rounded-full border border-white/60 bg-white px-3 py-1.5 text-xs font-semibold tracking-[0.12em] uppercase text-foreground"
-                  : "cursor-pointer rounded-full border border-white/20 bg-white/8 px-3 py-1.5 text-xs font-semibold tracking-[0.12em] uppercase text-white/78 hover:bg-white/18"
+                  ? "cursor-pointer rounded-md border border-foreground bg-foreground px-2.5 py-1 text-xs font-medium text-background"
+                  : "cursor-pointer rounded-md border border-line bg-transparent px-2.5 py-1 text-xs font-medium text-foreground hover:border-foreground/50"
               }
             >
               <input

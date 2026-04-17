@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActivityChip, inferActivityKind } from "@/components/ui/activity-chip";
-import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { FitScoreBadge } from "@/components/ui/fit-score-badge";
@@ -39,101 +38,85 @@ export default async function SplitGroupPlanPage({ params, searchParams }: PageP
   const queryString = toPlanningQueryString(planningState);
 
   return (
-    <div className="space-y-12 py-10">
-      <section
-        className="rounded-[34px] border border-white/20 p-6 text-white sm:p-8"
-        style={{
-          backgroundImage: `linear-gradient(135deg, ${destination.palette[0]}, ${destination.palette[1]} 52%, ${destination.palette[2]})`,
-        }}
-      >
-        <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-          <div className="space-y-4">
-            <p className="eyebrow text-white/68">Split group plan · {destination.region}</p>
-            <h1 className="display-title text-5xl font-semibold leading-[0.95] sm:text-6xl">
-              {destination.name}
-            </h1>
-            <p className="max-w-2xl text-lg leading-8 text-white/84">
-              One trip, two tracks. Active members get a real outing, easygoing members get a
-              low-effort day, and everyone rejoins for meals and views.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <Badge className="bg-white/15 text-white">
-                {labelOrigin(planningState.origin)} · {driveHours}h drive
-              </Badge>
-              <Badge className="bg-white/15 text-white">
-                {labelTripLength(planningState.tripLength)}
-              </Badge>
-              {planningState.startDate ? (
-                <Badge className="bg-white/15 text-white">
-                  Starts {labelPlanningDate(planningState.startDate)}
-                </Badge>
-              ) : null}
-              <FitScoreBadge score={destination.fitScore} className="bg-white/15" />
-            </div>
-            <div className="flex flex-wrap gap-3 pt-2">
-              <Link
-                href={`/destinations/${destination.slug}?${queryString}`}
-                className={buttonVariants({ variant: "surface" })}
-              >
-                Back to destination
-              </Link>
-              <Link
-                href={`/plans/${destination.slug}?${queryString}`}
-                className={buttonVariants({ variant: "surface", className: "bg-white/8" })}
-              >
-                Full trip plan
-              </Link>
-            </div>
+    <div className="space-y-10 py-8">
+      <section className="grid gap-6 border-b border-line pb-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
+        <div className="space-y-3">
+          <p className="text-xs text-muted">Split group · {destination.region}</p>
+          <h1 className="display-title text-4xl font-semibold leading-[1.05] sm:text-5xl">
+            {destination.name}
+          </h1>
+          <p className="max-w-2xl text-base leading-7 text-foreground">
+            One trip, two tracks. Active and easy sides rejoin for meals and views.
+          </p>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
+            <span>{labelOrigin(planningState.origin)} · {driveHours}h</span>
+            <span>·</span>
+            <span>{labelTripLength(planningState.tripLength)}</span>
+            {planningState.startDate ? (
+              <>
+                <span>·</span>
+                <span>Starts {labelPlanningDate(planningState.startDate)}</span>
+              </>
+            ) : null}
+            <FitScoreBadge score={destination.fitScore} size="sm" />
           </div>
+          <div className="flex flex-wrap gap-2 pt-1">
+            <Link
+              href={`/destinations/${destination.slug}?${queryString}`}
+              className={buttonVariants({ variant: "secondary", size: "sm" })}
+            >
+              Destination detail
+            </Link>
+            <Link
+              href={`/plans/${destination.slug}?${queryString}`}
+              className={buttonVariants({ variant: "secondary", size: "sm" })}
+            >
+              Full trip plan
+            </Link>
+          </div>
+        </div>
 
-          <Card className="border-white/10 bg-white/10 text-white shadow-none">
-            <CardHeader>
-              <p className="eyebrow text-white/65">Why this trip splits well</p>
-              <h2 className="text-2xl font-semibold">{destination.bestActivity}</h2>
-            </CardHeader>
-            <CardBody className="space-y-3 text-sm leading-6 text-white/82">
-              <p>{destination.whyNow}</p>
-              <div className="flex flex-wrap gap-2">
+        <Card>
+          <CardHeader>
+            <p className="text-xs text-muted">Why it splits well</p>
+            <h2 className="text-base font-semibold">{destination.bestActivity}</h2>
+          </CardHeader>
+          <CardBody className="space-y-2 text-sm leading-6">
+            <p className="text-foreground">{destination.whyNow}</p>
+            {destination.riskBadges.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5">
                 {destination.riskBadges.slice(0, 3).map((risk) => (
-                  <RiskBadge
-                    key={risk}
-                    label={risk}
-                    className="bg-white/12 text-white"
-                  />
+                  <RiskBadge key={risk} label={risk} />
                 ))}
               </div>
-            </CardBody>
-          </Card>
-        </div>
+            ) : null}
+          </CardBody>
+        </Card>
       </section>
 
       <section>
         <Card>
           <CardHeader>
-            <p className="eyebrow">Shared base</p>
-            <h2 className="display-title text-3xl font-semibold">{tracks.sharedBase.town}</h2>
+            <p className="text-xs text-muted">Shared base</p>
+            <h2 className="text-lg font-semibold">{tracks.sharedBase.town}</h2>
           </CardHeader>
-          <CardBody className="grid gap-5 md:grid-cols-3">
+          <CardBody className="grid gap-4 text-sm leading-6 md:grid-cols-3">
             <InfoBlock label="Town + lodging" value={tracks.sharedBase.lodging} />
-            <InfoBlock label="Shared breakfast" value={tracks.sharedBase.breakfast} />
-            <InfoBlock label="Shared dinner" value={tracks.sharedBase.dinner} />
+            <InfoBlock label="Breakfast" value={tracks.sharedBase.breakfast} />
+            <InfoBlock label="Dinner" value={tracks.sharedBase.dinner} />
           </CardBody>
         </Card>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-2">
+      <section className="grid gap-4 lg:grid-cols-2">
         <TrackCard
           title="Active track"
-          eyebrow="For the hikers / skiers"
-          description="Plan for one real outing, front-loaded when conditions are best."
-          tone="active"
+          eyebrow="Hikers / skiers"
           items={tracks.active}
         />
         <TrackCard
           title="Low-effort track"
-          eyebrow="For the non-hikers / food-first"
-          description="Parallel day built around cafes, easy walks, and town time."
-          tone="easy"
+          eyebrow="Non-hikers / food-first"
           items={tracks.lowEffort}
         />
       </section>
@@ -141,24 +124,15 @@ export default async function SplitGroupPlanPage({ params, searchParams }: PageP
       <section>
         <Card>
           <CardHeader>
-            <p className="eyebrow">Rejoin points</p>
-            <h2 className="display-title text-3xl font-semibold">
-              Where the two tracks come back together
-            </h2>
-            <p className="text-sm text-muted">
-              The win is not separating — it is planning the rejoin so everyone still feels part
-              of the trip.
-            </p>
+            <p className="text-xs text-muted">Rejoin points</p>
+            <h2 className="text-lg font-semibold">Where the two tracks meet</h2>
           </CardHeader>
-          <CardBody className="grid gap-4 md:grid-cols-3">
+          <CardBody className="grid gap-3 text-sm leading-6 md:grid-cols-3">
             {tracks.rejoin.map((point) => (
-              <div
-                key={point.label}
-                className="rounded-[24px] border border-white/40 bg-white/55 p-5"
-              >
-                <p className="eyebrow">{point.label}</p>
-                <p className="mt-2 text-base font-semibold text-foreground">{point.place}</p>
-                <p className="mt-2 text-sm leading-6 text-muted">{point.note}</p>
+              <div key={point.label}>
+                <p className="text-xs text-muted">{point.label}</p>
+                <p className="mt-1 font-semibold text-foreground">{point.place}</p>
+                <p className="mt-1 text-muted">{point.note}</p>
               </div>
             ))}
           </CardBody>
@@ -174,9 +148,9 @@ export default async function SplitGroupPlanPage({ params, searchParams }: PageP
 
 function InfoBlock({ label, value }: Readonly<{ label: string; value: string }>) {
   return (
-    <div className="rounded-[22px] border border-white/40 bg-white/55 p-5">
-      <p className="eyebrow">{label}</p>
-      <p className="mt-2 text-sm leading-6 text-foreground">{value}</p>
+    <div>
+      <p className="text-xs text-muted">{label}</p>
+      <p className="mt-1 text-foreground">{value}</p>
     </div>
   );
 }
@@ -192,51 +166,31 @@ type TrackItem = {
 function TrackCard({
   title,
   eyebrow,
-  description,
-  tone,
   items,
 }: Readonly<{
   title: string;
   eyebrow: string;
-  description: string;
-  tone: "active" | "easy";
   items: TrackItem[];
 }>) {
-  const accent =
-    tone === "active"
-      ? "border-pine/30 bg-[linear-gradient(135deg,rgba(51,92,80,0.12),rgba(37,93,108,0.08))]"
-      : "border-ocean/20 bg-[linear-gradient(135deg,rgba(37,93,108,0.08),rgba(223,200,160,0.18))]";
-
   return (
-    <Card className={accent}>
+    <Card>
       <CardHeader>
-        <p className="eyebrow">{eyebrow}</p>
-        <h2 className="display-title text-3xl font-semibold">{title}</h2>
-        <p className="text-sm text-muted">{description}</p>
+        <p className="text-xs text-muted">{eyebrow}</p>
+        <h2 className="text-lg font-semibold">{title}</h2>
       </CardHeader>
-      <CardBody className="space-y-4">
+      <CardBody className="space-y-3">
         {items.map((item) => (
-          <div
-            key={item.name}
-            className="rounded-[22px] border border-white/40 bg-white/55 p-5"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <ActivityChip label={item.name} kind={inferActivityKind(item.name)} selected />
-              <span className="text-xs font-semibold tracking-[0.14em] uppercase text-muted">
-                {item.timing}
-              </span>
+          <div key={item.name} className="border-t border-line pt-3 first:border-0 first:pt-0">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="font-medium">{item.name}</h3>
+                <p className="text-xs text-muted">{item.timing}{item.difficulty ? ` · ${item.difficulty}` : ""}</p>
+              </div>
+              <ActivityChip label={item.name} kind={inferActivityKind(item.name)} size="sm" />
             </div>
-            <p className="mt-3 text-sm leading-6 text-foreground">{item.detail}</p>
-            {item.difficulty ? (
-              <p className="mt-2 text-xs text-muted">
-                <span className="font-semibold text-foreground">Difficulty:</span>{" "}
-                {item.difficulty}
-              </p>
-            ) : null}
+            <p className="mt-2 text-sm leading-6 text-foreground">{item.detail}</p>
             {item.gear ? (
-              <p className="mt-1 text-xs text-muted">
-                <span className="font-semibold text-foreground">Gear:</span> {item.gear}
-              </p>
+              <p className="mt-1 text-xs text-muted">Gear · {item.gear}</p>
             ) : null}
           </div>
         ))}

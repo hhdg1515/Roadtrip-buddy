@@ -24,7 +24,7 @@ export function DestinationHeroImage({
   }
 
   return (
-    <div className={cn("relative overflow-hidden rounded-[28px] border border-white/35", className)}>
+    <div className={cn("relative overflow-hidden rounded-lg border border-line", className)}>
       <div className="relative aspect-[16/10]">
         <Image
           src={presentation.heroSrc}
@@ -34,15 +34,13 @@ export function DestinationHeroImage({
           className="object-cover"
           sizes="(max-width: 768px) 100vw, 50vw"
         />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(9,22,28,0.02),rgba(9,22,28,0.68))]" />
-        <div className="absolute inset-x-0 bottom-0 space-y-2 p-5 text-white">
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(9,22,28,0.02),rgba(9,22,28,0.6))]" />
+        <div className="absolute inset-x-0 bottom-0 space-y-1 p-4 text-white">
           {region ? (
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/75">
-              {region}
-            </p>
+            <p className="text-xs text-white/80">{region}</p>
           ) : null}
-          <h3 className="display-title text-3xl font-semibold leading-[0.98]">{name}</h3>
-          {summary ? <p className="max-w-2xl text-sm leading-6 text-white/84">{summary}</p> : null}
+          <h3 className="text-xl font-semibold">{name}</h3>
+          {summary ? <p className="max-w-2xl text-sm leading-6 text-white/85">{summary}</p> : null}
         </div>
       </div>
     </div>

@@ -10,7 +10,7 @@ export function Card({
   return (
     <div
       className={cn(
-        "glass-panel rounded-[28px] border border-white/45 shadow-[0_20px_80px_rgba(24,50,58,0.08)]",
+        "rounded-lg border border-line bg-card",
         className,
       )}
     >
@@ -26,7 +26,7 @@ export function CardHeader({
   children: React.ReactNode;
   className?: string;
 }>) {
-  return <div className={cn("space-y-3 p-6", className)}>{children}</div>;
+  return <div className={cn("space-y-2 p-5", className)}>{children}</div>;
 }
 
 export function CardBody({
@@ -36,5 +36,5 @@ export function CardBody({
   children: React.ReactNode;
   className?: string;
 }>) {
-  return <div className={cn("px-6 pb-6", className)}>{children}</div>;
+  return <div className={cn("px-5 pb-5", className)}>{children}</div>;
 }

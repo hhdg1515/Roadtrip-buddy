@@ -3,11 +3,11 @@
 :root {
   --background: #f6f1e7;
   --foreground: #18323a;
-  --card: rgba(255, 251, 244, 0.76);
+  --card: #fffaf2;
   --card-strong: #fff9f0;
   --muted: #5c746f;
-  --muted-soft: rgba(92, 116, 111, 0.12);
-  --line: rgba(24, 50, 58, 0.12);
+  --muted-soft: rgba(92, 116, 111, 0.1);
+  --line: rgba(24, 50, 58, 0.14);
   --sand: #dfc8a0;
   --ocean: #255d6c;
   --sun: #c56d2a;
@@ -41,10 +41,7 @@ html {
 }
 
 body {
-  background:
-    radial-gradient(circle at top left, rgba(197, 109, 42, 0.18), transparent 28%),
-    radial-gradient(circle at top right, rgba(37, 93, 108, 0.18), transparent 32%),
-    linear-gradient(180deg, #f9f4ec 0%, #f2ede4 48%, #ece6dc 100%);
+  background: var(--background);
   color: var(--foreground);
   font-family: var(--font-body), sans-serif;
 }
@@ -62,35 +59,17 @@ a {
   position: relative;
 }
 
-.page-shell::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  opacity: 0.24;
-  background-image:
-    linear-gradient(rgba(24, 50, 58, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(24, 50, 58, 0.03) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: linear-gradient(180deg, black 10%, transparent 90%);
-}
-
-.glass-panel {
-  background: var(--card);
-  backdrop-filter: blur(18px);
-}
-
 .eyebrow {
-  color: var(--ocean);
-  letter-spacing: 0.18em;
+  color: var(--muted);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  font-size: 0.72rem;
-  font-weight: 700;
+  font-size: 0.7rem;
+  font-weight: 600;
 }
 
 .display-title {
   font-family: var(--font-display), serif;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.02em;
 }
 
 .section-grid {
@@ -98,19 +77,6 @@ a {
   gap: 1rem;
 }
 
-.score-ring {
-  background:
-    radial-gradient(circle at center, rgba(255, 255, 255, 0.78) 0%, rgba(255, 255, 255, 0.08) 55%, transparent 56%),
-    conic-gradient(
-      from 180deg,
-      rgba(37, 93, 108, 0.22) 0%,
-      rgba(37, 93, 108, 0.9) 60%,
-      rgba(197, 109, 42, 0.92) 100%
-    );
-}
-
-.hero-wash {
-  background:
-    linear-gradient(135deg, rgba(24, 50, 58, 0.94), rgba(37, 93, 108, 0.88) 48%, rgba(197, 109, 42, 0.82)),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent);
+.hero-solid {
+  background: var(--foreground);
 }

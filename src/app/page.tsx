@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { DestinationCard } from "@/components/home/destination-card";
 import { NowPlanningControls } from "@/components/home/now-planning-controls";
-import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { FitScoreBadge } from "@/components/ui/fit-score-badge";
@@ -14,20 +13,9 @@ import {
   seasonalCollections,
 } from "@/lib/data/openseason";
 import {
-  formatUpdatedAt,
-  formatWeatherMetrics,
-  getPrimaryAlert,
-} from "@/lib/live-conditions";
-import {
   getPlanningState,
-  labelDrivingTolerance,
   labelGroupProfile,
-  labelInterest,
-  labelTripFormat,
-  labelLodgingStyle,
   labelOrigin,
-  labelPlanningDate,
-  labelTripIntensity,
   labelTripLength,
   toComparisonQueryString,
   toPlanningQueryString,
@@ -64,125 +52,53 @@ export default async function Home({
   const destinationLookup = new Map(
     recommendations.map((destination) => [destination.slug, destination]),
   );
-  const leadDestination = topRecommendations[0];
-  const leadWeatherMetrics = formatWeatherMetrics(leadDestination?.liveWeather).slice(0, 2);
-  const leadAlert = getPrimaryAlert(leadDestination?.activeAlerts);
 
   return (
-    <div className="space-y-16 py-10 sm:space-y-20 sm:py-14">
-      <section className="hero-wash rounded-[36px] border border-white/10 px-6 py-8 text-white shadow-[0_30px_100px_rgba(24,50,58,0.22)] sm:px-8 sm:py-10 lg:px-10 lg:py-12">
-        <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-          <div className="space-y-6">
-            <div className="space-y-3">
-              <p className="eyebrow text-white/74">{currentWindowLabel}</p>
-              <h1 className="display-title max-w-4xl text-5xl font-semibold leading-[0.95] sm:text-6xl">
-                California road trips that actually fit right now.
-              </h1>
-              <p className="max-w-2xl text-base leading-7 text-white/82 sm:text-lg">
-                OpenSeason is not a generic trip list. It ranks where to go, why it works,
-                what to avoid, and what backup plan still holds if conditions change.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-3">
+    <div className="space-y-12 py-8 sm:py-10">
+      <section className="space-y-6 border-b border-line pb-10">
+        <div className="grid gap-8 lg:grid-cols-[1.3fr_0.7fr] lg:items-start">
+          <div className="space-y-5">
+            <p className="text-xs text-muted">{currentWindowLabel}</p>
+            <h1 className="display-title max-w-3xl text-4xl font-semibold leading-[1.05] sm:text-5xl">
+              California road trips, ranked for what&rsquo;s actually in season this week.
+            </h1>
+            <div className="flex flex-wrap gap-2">
               <Link
                 href={hasSavedDefaults ? `/plan?${queryString}` : "/onboarding"}
-                className={buttonVariants({ variant: "surface" })}
+                className={buttonVariants({ variant: "primary" })}
               >
-                {hasSavedDefaults ? "Refine trip brief" : "Start onboarding"}
+                {hasSavedDefaults ? "Refine brief" : "Start onboarding"}
               </Link>
               <Link
                 href={`/destinations/${topRecommendations[0]?.slug ?? "big-sur-carmel"}`}
-                className={buttonVariants({
-                  variant: "surface",
-                  className: "bg-white/8",
-                })}
+                className={buttonVariants({ variant: "secondary" })}
               >
-                Check best current pick
+                Best current pick
               </Link>
             </div>
           </div>
 
-          <Card className="border-white/12 bg-white/10 text-white shadow-none">
+          <Card>
             <CardHeader>
-              <p className="eyebrow text-white/70">
-                {user ? "Current profile-driven brief" : "Current planning brief"}
-              </p>
-              <h2 className="display-title text-3xl font-semibold">
-                {labelOrigin(planningState.origin)}, {labelTripLength(planningState.tripLength).toLowerCase()},{" "}
-                {labelGroupProfile(planningState.groupProfile).toLowerCase()}
+              <p className="text-xs text-muted">Current brief</p>
+              <h2 className="text-lg font-semibold">
+                {labelOrigin(planningState.origin)} · {labelTripLength(planningState.tripLength).toLowerCase()} · {labelGroupProfile(planningState.groupProfile).toLowerCase()}
               </h2>
             </CardHeader>
-            <CardBody className="space-y-5 text-sm text-white/84">
+            <CardBody>
               <NowPlanningControls state={planningState} />
-              <div className="flex flex-wrap gap-2">
-                {planningState.startDate ? (
-                  <Badge className="bg-white/16 text-white">
-                    {labelPlanningDate(planningState.startDate)}
-                  </Badge>
-                ) : null}
-                <Badge className="bg-white/16 text-white">
-                  {labelDrivingTolerance(planningState.drivingTolerance)}
-                </Badge>
-                <Badge className="bg-white/16 text-white">
-                  {labelTripFormat(planningState.tripFormat)}
-                </Badge>
-                <Badge className="bg-white/16 text-white">
-                  {labelTripIntensity(planningState.tripIntensity)}
-                </Badge>
-                <Badge className="bg-white/16 text-white">
-                  {labelLodgingStyle(planningState.lodgingStyle)}
-                </Badge>
-                {planningState.interestMode === "open" ? (
-                  <Badge className="bg-white/16 text-white">Open to anything</Badge>
-                ) : (
-                  planningState.interests.map((interest) => (
-                    <Badge key={interest} className="bg-white/16 text-white">
-                      {labelInterest(interest)}
-                    </Badge>
-                  ))
-                )}
-              </div>
-              <div className="rounded-[24px] border border-white/12 bg-black/10 p-5">
-                <p className="eyebrow text-white/60">Seasonal banner</p>
-                <p className="mt-3 text-base leading-7">
-                  Mid-April in California favors waterfall trips, coast loops, and the
-                  last comfortable desert window. High Sierra expectations still need to
-                  stay conservative.
-                </p>
-                {leadWeatherMetrics.length > 0 ? (
-                  <p className="mt-4 text-sm leading-6 text-white/72">
-                    Live on the current leader: {leadWeatherMetrics.join(" · ")}
-                  </p>
-                ) : null}
-                {leadAlert ? (
-                  <p className="mt-2 text-sm leading-6 text-white/72">
-                    Current alert pressure: {leadAlert.title}
-                  </p>
-                ) : null}
-                {topRecommendations[0]?.updatedAt ? (
-                  <p className="mt-4 text-sm text-white/65">
-                    Live snapshot refreshed {formatUpdatedAt(topRecommendations[0].updatedAt)}
-                  </p>
-                ) : null}
-                {user ? (
-                  <p className="mt-4 text-sm leading-6 text-white/65">
-                    This homepage is currently seeded from your saved profile defaults.
-                  </p>
-                ) : null}
-              </div>
             </CardBody>
           </Card>
         </div>
       </section>
 
-      <section className="space-y-8">
+      <section className="space-y-6">
         <SectionHeading
           eyebrow="Now"
-          title="Ranked picks for this week"
-          description="The app starts with a decision. These rankings already account for seasonality, weather, drive burden, group fit, and the quality of a usable Plan B."
+          title="Ranked picks this week"
+          description="Already filtered by season, weather, drive burden, group fit, and Plan B quality."
         />
-        <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {topRecommendations.map((destination) => (
             <DestinationCard
               key={destination.slug}
@@ -193,22 +109,17 @@ export default async function Home({
         </div>
       </section>
 
-      <section className="space-y-8">
+      <section className="space-y-6">
         <SectionHeading
-          eyebrow="Collections"
-          title="What is peaking in this season"
-          description="The app should feel alive. Seasonal collections are how we surface timely windows without making users search destination by destination."
+          eyebrow="Peaking now"
+          title="Seasonal collections"
         />
-        <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           {seasonalCollections.map((collection) => (
             <Card key={collection.name}>
-              <CardHeader className="space-y-4">
-                <Badge tone="warm">{collection.name}</Badge>
-                <h3 className="text-2xl font-semibold tracking-tight">{collection.name}</h3>
-              </CardHeader>
-              <CardBody className="space-y-4">
-                <p className="text-sm leading-6 text-muted">{collection.description}</p>
-                <p className="text-sm text-foreground">
+              <CardBody className="space-y-2 pt-5">
+                <h3 className="font-semibold">{collection.name}</h3>
+                <p className="text-sm text-muted">
                   {collection.slugs
                     .map((slug) => destinationLookup.get(slug)?.name)
                     .filter(Boolean)
@@ -220,53 +131,54 @@ export default async function Home({
         </div>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+      <section className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
         <Card>
           <CardHeader>
-            <p className="eyebrow">Comparison</p>
-            <h2 className="display-title text-3xl font-semibold">
-              Why the leader wins right now
-            </h2>
+            <p className="text-xs text-muted">Comparison · leader vs. runners-up</p>
+            <h2 className="text-lg font-semibold">Why the leader wins</h2>
           </CardHeader>
-          <CardBody className="space-y-4">
-            {comparisonSet.map((destination, index) => (
-              <div
-                key={destination.slug}
-                className="rounded-[24px] border border-white/40 bg-white/50 p-5"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div className="space-y-2">
-                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted">
-                      Option {index + 1}
-                    </p>
-                    <h3 className="text-2xl font-semibold tracking-tight">
-                      {destination.name}
-                    </h3>
-                    <p className="text-sm leading-6 text-muted">{destination.currentVerdict}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-3xl font-bold">{destination.fitScore}</p>
-                    <FitScoreBadge score={destination.fitScore} showScore={false} size="sm" className="mt-2" />
-                  </div>
-                </div>
-                <div className="mt-4 grid gap-3 text-sm text-foreground sm:grid-cols-2">
-                  <p>
-                    <span className="font-semibold">Best reason:</span>{" "}
-                    {destination.bestActivity}
-                  </p>
-                  <p>
-                    <span className="font-semibold">Biggest risk:</span>{" "}
-                    {destination.mainWarning}
-                  </p>
-                </div>
-              </div>
-            ))}
-            <div className="pt-2">
+          <CardBody>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-line text-left text-xs text-muted">
+                    <th className="py-2 pr-4 font-medium">Destination</th>
+                    <th className="py-2 pr-4 font-medium">Fit</th>
+                    <th className="py-2 pr-4 font-medium">Best reason</th>
+                    <th className="py-2 font-medium">Biggest risk</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {comparisonSet.map((destination) => (
+                    <tr key={destination.slug} className="border-b border-line/60 last:border-0 align-top">
+                      <td className="py-3 pr-4">
+                        <Link
+                          href={`/destinations/${destination.slug}`}
+                          className="font-medium hover:text-ocean"
+                        >
+                          {destination.name}
+                        </Link>
+                        <p className="text-xs text-muted">{destination.region}</p>
+                      </td>
+                      <td className="py-3 pr-4">
+                        <div className="flex flex-col gap-1">
+                          <span className="tabular-nums font-semibold">{destination.fitScore}</span>
+                          <FitScoreBadge score={destination.fitScore} showScore={false} size="sm" />
+                        </div>
+                      </td>
+                      <td className="py-3 pr-4 text-foreground">{destination.bestActivity}</td>
+                      <td className="py-3 text-muted">{destination.mainWarning}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="pt-4">
               <Link
                 href={`/compare?${comparisonQueryString}`}
-                className={buttonVariants({ variant: "secondary" })}
+                className={buttonVariants({ variant: "secondary", size: "sm" })}
               >
-                Open scrollable comparison
+                Full comparison
               </Link>
             </div>
           </CardBody>
@@ -274,20 +186,18 @@ export default async function Home({
 
         <Card>
           <CardHeader>
-            <p className="eyebrow">Avoid / caution</p>
-            <h2 className="display-title text-3xl font-semibold">
-              What should not be ignored
-            </h2>
+            <p className="text-xs text-muted">Avoid this week</p>
+            <h2 className="text-lg font-semibold">Caution list</h2>
           </CardHeader>
-          <CardBody className="space-y-3">
-            {cautionList.map((item) => (
-              <div
-                key={item}
-                className="rounded-[22px] border border-danger/14 bg-danger/6 px-4 py-4 text-sm leading-6 text-foreground"
-              >
-                {item}
-              </div>
-            ))}
+          <CardBody>
+            <ul className="space-y-2 text-sm leading-6 text-foreground">
+              {cautionList.map((item) => (
+                <li key={item} className="flex gap-2">
+                  <span className="text-danger">·</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
           </CardBody>
         </Card>
       </section>

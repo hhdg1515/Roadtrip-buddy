@@ -18,11 +18,11 @@ export function RouteErrorState({
   actionLabel = "Try again",
 }: RouteErrorStateProps) {
   return (
-    <div className="space-y-6 py-16">
-      <p className="eyebrow">{eyebrow}</p>
-      <h1 className="display-title text-4xl font-semibold text-foreground">{title}</h1>
-      <p className="max-w-2xl text-base leading-7 text-muted">{description}</p>
-      <button type="button" onClick={reset} className={buttonVariants({ variant: "primary" })}>
+    <div className="space-y-4 py-12">
+      <p className="text-xs text-muted">{eyebrow}</p>
+      <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
+      <p className="max-w-2xl text-sm leading-6 text-muted">{description}</p>
+      <button type="button" onClick={reset} className={buttonVariants({ variant: "primary", size: "sm" })}>
         {actionLabel}
       </button>
     </div>

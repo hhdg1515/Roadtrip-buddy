@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { FitScoreBadge } from "@/components/ui/fit-score-badge";
 import { FormSubmitButton } from "@/components/ui/form-submit-button";
 import { Input } from "@/components/ui/input";
 import { SectionHeading } from "@/components/ui/section-heading";
@@ -24,37 +25,25 @@ export default async function SavedPage({ searchParams }: PageProps) {
 
   if (!isConfigured) {
     return (
-      <div className="space-y-12 py-10">
-        <SectionHeading
-          eyebrow="Saved"
-          title="Saved trips need Supabase auth"
-          description="This page becomes useful after auth is configured, because saved plans are scoped to the current user."
-        />
+      <div className="space-y-10 py-8">
+        <SectionHeading eyebrow="Saved" title="Saved trips need Supabase auth" />
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="space-y-12 py-10">
-        <SectionHeading
-          eyebrow="Saved"
-          title="Sign in before saved trips become useful"
-          description="Saved plans live behind auth because each saved itinerary belongs to a specific user session and profile."
-        />
+      <div className="space-y-10 py-8">
+        <SectionHeading eyebrow="Saved" title="Sign in to see saved trips" />
         <Card>
-          <CardHeader>
-            <p className="eyebrow">Sign in required</p>
-            <h2 className="display-title text-3xl font-semibold">No session yet</h2>
-          </CardHeader>
-          <CardBody className="space-y-4 text-sm leading-6">
-            <p>
-              Use the profile page to request a magic link. After that, any saved trip plan will
-              appear here with its live-condition context.
+          <CardBody className="space-y-3 text-sm leading-6">
+            <p className="text-muted">
+              Request a magic link on the profile page. Saved trips will appear here with
+              live condition context.
             </p>
             <Link
               href="/profile?next=%2Fsaved"
-              className={buttonVariants({ variant: "primary" })}
+              className={buttonVariants({ variant: "primary", size: "sm" })}
             >
               Open profile sign-in
             </Link>
@@ -64,161 +53,95 @@ export default async function SavedPage({ searchParams }: PageProps) {
     );
   }
 
+  const notice = getSavedNotice(status);
+
   return (
-    <div className="space-y-12 py-10">
-      <SectionHeading
-        eyebrow="Saved"
-        title="Trips that stay useful after generation"
-        description="A saved trip should keep its live fit score and current warning attached, instead of freezing into a stale itinerary export."
-      />
+    <div className="space-y-10 py-8">
+      <SectionHeading eyebrow="Saved" title="Your trips, still live" />
 
-      {status === "signed-in" ? (
-        <Card>
-          <CardBody className="pt-6 text-sm leading-6">
-            <div className="flex flex-wrap gap-2">
-              <Badge>Signed in</Badge>
-            </div>
-            <p className="mt-3">Your session is active. Saved plans will now load from Supabase.</p>
-          </CardBody>
-        </Card>
-      ) : null}
-
-      {status === "deleted" ? (
-        <Card>
-          <CardBody className="pt-6 text-sm leading-6">
-            <div className="flex flex-wrap gap-2">
-              <Badge tone="soft">Plan removed</Badge>
-            </div>
-            <p className="mt-3">The saved plan was deleted from your account.</p>
-          </CardBody>
-        </Card>
-      ) : null}
-
-      {status === "delete-error" ? (
-        <Card>
-          <CardBody className="pt-6 text-sm leading-6">
-            <div className="flex flex-wrap gap-2">
-              <Badge tone="danger">Delete failed</Badge>
-            </div>
-            <p className="mt-3">The saved plan could not be removed. Try again.</p>
-          </CardBody>
-        </Card>
-      ) : null}
-
-      {status === "renamed" ? (
-        <Card>
-          <CardBody className="pt-6 text-sm leading-6">
-            <div className="flex flex-wrap gap-2">
-              <Badge>Title updated</Badge>
-            </div>
-            <p className="mt-3">The saved trip title was updated.</p>
-          </CardBody>
-        </Card>
-      ) : null}
-
-      {status === "rename-error" ? (
-        <Card>
-          <CardBody className="pt-6 text-sm leading-6">
-            <div className="flex flex-wrap gap-2">
-              <Badge tone="danger">Rename failed</Badge>
-            </div>
-            <p className="mt-3">The saved trip title could not be updated. Try again.</p>
-          </CardBody>
-        </Card>
-      ) : null}
+      {notice ? <StatusNote tone={notice.tone} label={notice.label} message={notice.message} /> : null}
 
       {savedTrips.length === 0 ? (
         <Card>
-          <CardHeader>
-            <p className="eyebrow">Nothing saved yet</p>
-            <h2 className="display-title text-3xl font-semibold">Start from any generated plan</h2>
-          </CardHeader>
-          <CardBody className="space-y-4 text-sm leading-6">
-            <p>
-              The fastest way to populate this page is to open a destination plan and hit
-              “Save this plan”.
+          <CardBody className="space-y-3 text-sm leading-6">
+            <p className="text-muted">
+              Nothing saved yet. Open a plan and hit save.
             </p>
-            <Link href="/plan" className={buttonVariants({ variant: "primary" })}>
-              Open planning flow
+            <Link href="/plan" className={buttonVariants({ variant: "primary", size: "sm" })}>
+              Open planning
             </Link>
           </CardBody>
         </Card>
       ) : (
-        <div className="grid gap-5 lg:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-2">
           {savedTrips.map((trip) => (
             <Card key={trip.id}>
-              <CardHeader className="space-y-3">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="eyebrow">Saved trip</p>
-                    <h2 className="text-3xl font-semibold tracking-tight">{trip.title}</h2>
+              <CardHeader>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 space-y-0.5">
+                    <p className="text-xs text-muted">
+                      {trip.region} · {formatOrigin(trip.userOrigin)} · saved {formatSavedAt(trip.savedAt)}
+                    </p>
+                    <h2 className="text-lg font-semibold">{trip.title}</h2>
+                    <p className="text-xs text-muted">{trip.destinationName}</p>
                   </div>
                   {trip.fitScore != null ? (
-                    <div className="text-right">
-                      <p className="text-3xl font-bold">{trip.fitScore}</p>
-                      <p className="text-sm text-muted">{trip.fitLabel}</p>
+                    <div className="shrink-0 text-right">
+                      <p className="text-2xl font-semibold tabular-nums">{trip.fitScore}</p>
+                      <FitScoreBadge score={trip.fitScore} showScore={false} size="sm" className="mt-1" />
                     </div>
                   ) : null}
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <Badge>{trip.destinationName}</Badge>
-                  <Badge tone="soft">{trip.region}</Badge>
-                  <Badge>Saved {formatSavedAt(trip.savedAt)}</Badge>
-                  <Badge tone="warm">{formatOrigin(trip.userOrigin)}</Badge>
-                </div>
               </CardHeader>
               <CardBody className="space-y-4 text-sm leading-6">
-                <form action={renameSavedTripAction} className="space-y-3">
+                {trip.currentVerdict ? <p>{trip.currentVerdict}</p> : null}
+                <div>
+                  <p className="text-xs text-muted">Current risk</p>
+                  <p className="mt-0.5 text-muted">
+                    {trip.mainWarning ?? "Live conditions syncing."}
+                  </p>
+                </div>
+
+                <form action={renameSavedTripAction} className="space-y-2">
                   <input type="hidden" name="id" value={trip.id} />
-                  <div className="space-y-2">
-                    <label htmlFor={`trip-title-${trip.id}`} className="text-sm font-semibold text-foreground">
-                      Trip title
-                    </label>
-                    <Input
-                      id={`trip-title-${trip.id}`}
-                      name="title"
-                      defaultValue={trip.title}
-                      maxLength={120}
-                    />
-                  </div>
-                  <FormSubmitButton
-                    variant="secondary"
-                    size="sm"
-                    pendingLabel="Saving title..."
-                  >
+                  <label htmlFor={`trip-title-${trip.id}`} className="block text-xs text-muted">
+                    Rename
+                  </label>
+                  <Input
+                    id={`trip-title-${trip.id}`}
+                    name="title"
+                    defaultValue={trip.title}
+                    maxLength={120}
+                  />
+                  <FormSubmitButton variant="secondary" size="sm" pendingLabel="Saving...">
                     Save title
                   </FormSubmitButton>
                 </form>
 
-                {trip.currentVerdict ? <p>{trip.currentVerdict}</p> : null}
-                <div className="rounded-[22px] bg-muted-soft px-4 py-4">
-                  <p className="font-semibold text-foreground">Current trip-shaping risk</p>
-                  <p className="mt-2 text-muted">
-                    {trip.mainWarning ?? "Live destination conditions are still syncing."}
-                  </p>
-                </div>
                 {trip.updatedAt ? (
-                  <p className="text-muted">
-                    Destination snapshot refreshed {formatUpdatedAt(trip.updatedAt)}
+                  <p className="text-xs text-muted">
+                    Refreshed {formatUpdatedAt(trip.updatedAt)}
                   </p>
                 ) : null}
-                <div className="flex flex-wrap gap-3">
+
+                <div className="flex flex-wrap gap-2">
                   <Link
                     href={`/plans/${trip.slug}`}
-                    className={buttonVariants({ variant: "primary" })}
+                    className={buttonVariants({ variant: "primary", size: "sm" })}
                   >
                     Open plan
                   </Link>
                   <Link
                     href={`/destinations/${trip.slug}`}
-                    className={buttonVariants({ variant: "secondary" })}
+                    className={buttonVariants({ variant: "secondary", size: "sm" })}
                   >
-                    Check conditions
+                    Conditions
                   </Link>
                   <form action={deleteSavedTripAction}>
                     <input type="hidden" name="id" value={trip.id} />
                     <FormSubmitButton
                       variant="ghost"
+                      size="sm"
                       pendingLabel="Removing..."
                       className="text-danger hover:bg-danger/8"
                     >
@@ -235,10 +158,42 @@ export default async function SavedPage({ searchParams }: PageProps) {
   );
 }
 
+function StatusNote({
+  tone,
+  label,
+  message,
+}: Readonly<{
+  tone: "default" | "soft" | "danger";
+  label: string;
+  message: string;
+}>) {
+  return (
+    <div className="flex items-center gap-3 rounded-md border border-line bg-card px-4 py-3 text-sm">
+      <Badge tone={tone}>{label}</Badge>
+      <span className="text-muted">{message}</span>
+    </div>
+  );
+}
+
+function getSavedNotice(status: string | undefined) {
+  switch (status) {
+    case "signed-in":
+      return { tone: "default" as const, label: "Signed in", message: "Saved plans loaded." };
+    case "deleted":
+      return { tone: "soft" as const, label: "Removed", message: "Plan deleted." };
+    case "delete-error":
+      return { tone: "danger" as const, label: "Delete failed", message: "Try again." };
+    case "renamed":
+      return { tone: "default" as const, label: "Title updated", message: "Saved." };
+    case "rename-error":
+      return { tone: "danger" as const, label: "Rename failed", message: "Try again." };
+    default:
+      return null;
+  }
+}
+
 function formatSavedAt(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    dateStyle: "medium",
-  }).format(new Date(value));
+  return new Intl.DateTimeFormat("en-US", { dateStyle: "medium" }).format(new Date(value));
 }
 
 function getFirstValue(value: string | string[] | undefined) {

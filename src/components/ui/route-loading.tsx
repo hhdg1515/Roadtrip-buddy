@@ -12,24 +12,23 @@ export function RouteLoading({
   panelCount = 3,
 }: RouteLoadingProps) {
   return (
-    <div className="animate-pulse space-y-8 py-10" aria-busy="true" aria-live="polite">
-      <div className="space-y-3">
-        <p className="eyebrow text-transparent">{eyebrow}</p>
-        <div className="h-12 max-w-2xl rounded-[20px] bg-muted-soft" />
-        <div className="h-6 max-w-3xl rounded-[16px] bg-muted-soft" />
+    <div className="animate-pulse space-y-6 py-8" aria-busy="true" aria-live="polite">
+      <div className="space-y-2">
+        <div className="h-3 w-16 rounded bg-muted-soft" />
+        <div className="h-8 max-w-xl rounded-md bg-muted-soft" />
         <p className="sr-only">
           {title}. {description}
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="h-[280px] rounded-[28px] bg-muted-soft" />
-        <div className="h-[280px] rounded-[28px] bg-muted-soft" />
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="h-[220px] rounded-lg bg-muted-soft" />
+        <div className="h-[220px] rounded-lg bg-muted-soft" />
       </div>
 
-      <div className={`grid gap-5 ${panelCount >= 3 ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
+      <div className={`grid gap-4 ${panelCount >= 3 ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
         {Array.from({ length: panelCount }).map((_, index) => (
-          <div key={index} className="h-[320px] rounded-[28px] bg-muted-soft" />
+          <div key={index} className="h-[240px] rounded-lg bg-muted-soft" />
         ))}
       </div>
     </div>

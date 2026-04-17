@@ -37,50 +37,48 @@ export function DestinationMapCard({
   return (
     <Card>
       <CardHeader>
-        <p className="eyebrow">Map snapshot</p>
-        <h2 className="display-title text-3xl font-semibold">Location and access</h2>
+        <p className="text-xs text-muted">Map</p>
+        <h2 className="text-lg font-semibold">Location and access</h2>
       </CardHeader>
-      <CardBody className="space-y-5">
-        <div className="overflow-hidden rounded-[24px] border border-white/35 bg-muted-soft">
+      <CardBody className="space-y-4">
+        <div className="overflow-hidden rounded-md border border-line bg-muted-soft">
           <iframe
             title={`${destination.name} map`}
             src={presentation.mapEmbedUrl}
-            className="h-[320px] w-full border-0"
+            className="h-[280px] w-full border-0"
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
           />
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-start">
-          <div className="space-y-3 text-sm leading-6">
-            <p>
-              <span className="font-semibold">Best base:</span> {destination.lodging.bestBase}
-            </p>
-            <p>
-              <span className="font-semibold">Coordinates:</span> {presentation.latitude.toFixed(3)}
-              , {presentation.longitude.toFixed(3)}
-            </p>
+        <div className="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-start">
+          <dl className="grid grid-cols-[110px_1fr] gap-x-2 gap-y-1 text-sm leading-6">
+            <dt className="text-muted">Best base</dt>
+            <dd>{destination.lodging.bestBase}</dd>
+            <dt className="text-muted">Coords</dt>
+            <dd>{presentation.latitude.toFixed(3)}, {presentation.longitude.toFixed(3)}</dd>
             {focusOrigin ? (
-              <p>
-                <span className="font-semibold">Current drive anchor:</span>{" "}
-                {destination.driveHours[focusOrigin]}h from {labelOrigin(focusOrigin)}
-              </p>
+              <>
+                <dt className="text-muted">Drive</dt>
+                <dd>{destination.driveHours[focusOrigin]}h from {labelOrigin(focusOrigin)}</dd>
+              </>
             ) : null}
-          </div>
+          </dl>
           <Link
             href={presentation.mapLinkUrl}
             target="_blank"
             rel="noreferrer"
-            className={buttonVariants({ variant: "secondary" })}
+            className={buttonVariants({ variant: "secondary", size: "sm" })}
           >
             Open full map
           </Link>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-2 text-sm sm:grid-cols-2">
           {driveTimes.map((item) => (
-            <div key={item.origin} className="rounded-[20px] bg-muted-soft px-4 py-4 text-sm">
-              <span className="font-semibold">{labelOrigin(item.origin)}:</span> {item.driveHours}h
+            <div key={item.origin} className="flex justify-between border-t border-line pt-2">
+              <span className="text-muted">{labelOrigin(item.origin)}</span>
+              <span>{item.driveHours}h</span>
             </div>
           ))}
         </div>

@@ -6,12 +6,14 @@ import { ActivityChip, inferActivityKind } from "@/components/ui/activity-chip";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { DecisionStatusCard } from "@/components/ui/decision-status-card";
 import { FitScoreBadge } from "@/components/ui/fit-score-badge";
 import { PlanBCard } from "@/components/ui/plan-b-card";
 import { RiskBadge } from "@/components/ui/risk-badge";
 import { getUserPreferences } from "@/lib/account";
 import { buildScoringContext } from "@/lib/data/openseason";
 import { getDestinationBySlugFromRepository } from "@/lib/data/repository";
+import { getDestinationDecisionStatus } from "@/lib/decision-layer";
 import {
   formatAlertDate,
   formatUpdatedAt,
@@ -69,112 +71,85 @@ export default async function DestinationPage({ params, searchParams }: PageProp
   const weatherMetrics = formatWeatherMetrics(destination.liveWeather);
   const activeAlerts = destination.activeAlerts ?? [];
   const primaryAlert = getPrimaryAlert(activeAlerts);
+  const decision = getDestinationDecisionStatus(destination);
 
   return (
-    <div className="space-y-10 py-10">
-      <section
-        className="rounded-[34px] border border-white/20 p-6 text-white sm:p-8"
-        style={{
-          backgroundImage: `linear-gradient(135deg, ${destination.palette[0]}, ${destination.palette[1]} 52%, ${destination.palette[2]})`,
-        }}
-      >
-        <div className="grid gap-6 lg:grid-cols-[1.08fr_0.92fr]">
-          <div className="space-y-5">
-            <p className="eyebrow text-white/68">{destination.region}</p>
-            <h1 className="display-title text-5xl font-semibold leading-[0.95] sm:text-6xl">
-              {destination.name}
-            </h1>
-            <p className="max-w-3xl text-lg leading-8 text-white/84">
-              {destination.currentVerdict}
-            </p>
-            <p className="max-w-3xl text-base leading-7 text-white/76">{destination.summary}</p>
+    <div className="space-y-10 py-8">
+      <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
+        <div className="space-y-4">
+          <p className="text-xs text-muted">{destination.region}</p>
+          <h1 className="display-title text-4xl font-semibold leading-[1.05] sm:text-5xl">
+            {destination.name}
+          </h1>
+          <p className="max-w-2xl text-base leading-7 text-foreground">
+            {destination.currentVerdict}
+          </p>
 
-            <div className="flex flex-wrap gap-2">
-              <FitScoreBadge score={contextualFitScore} className="bg-white/15 text-white" />
-              <Badge className="bg-white/15 text-white">{destination.bestActivity}</Badge>
-              <Badge className="bg-white/15 text-white">
-                {destination.driveHours[planningState.origin]}h from {labelOrigin(planningState.origin)}
-              </Badge>
-              <Badge className="bg-white/15 text-white">{destination.seasonalWindow}</Badge>
-            </div>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted">
+            <span>{destination.driveHours[planningState.origin]}h from {labelOrigin(planningState.origin)}</span>
+            <span>·</span>
+            <span>{destination.seasonalWindow}</span>
+            <span>·</span>
+            <span>{destination.bestActivity}</span>
+          </div>
 
-            <div className="flex flex-wrap gap-2 pt-1">
-              {destination.riskBadges.map((risk) => (
-                <RiskBadge key={risk} label={risk} className="bg-white/12 text-white" />
+          {destination.riskBadges.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5">
+              {destination.riskBadges.slice(0, 3).map((risk) => (
+                <RiskBadge key={risk} label={risk} />
               ))}
             </div>
-          </div>
-
-          <div className="space-y-4 lg:sticky lg:top-24 lg:self-start">
-            <Card className="border-white/10 bg-white/10 text-white shadow-none">
-              <CardHeader>
-                <p className="eyebrow text-white/65">Current decision</p>
-                <div className="flex items-start justify-between gap-4">
-                  <div className="space-y-2">
-                    <h2 className="text-3xl font-semibold">{destination.bestActivity}</h2>
-                    <p className="text-sm leading-6 text-white/80">{destination.whyNow}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-4xl font-bold">{contextualFitScore}</p>
-                    <FitScoreBadge
-                      score={contextualFitScore}
-                      showScore={false}
-                      size="sm"
-                      className="mt-2 bg-white/20 text-white"
-                    />
-                    <p className="mt-1 text-xs text-white/68">{contextualFitLabel}</p>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardBody className="space-y-4 text-sm text-white/82">
-                {weatherMetrics.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {weatherMetrics.slice(0, 3).map((metric) => (
-                      <Badge key={metric} className="bg-white/15 text-white">
-                        {metric}
-                      </Badge>
-                    ))}
-                  </div>
-                ) : null}
-
-                <p>
-                  <span className="font-semibold">Main risk:</span> {destination.mainWarning}
-                </p>
-                {primaryAlert ? (
-                  <p>
-                    <span className="font-semibold">Top alert:</span> {primaryAlert.title}
-                  </p>
-                ) : null}
-                {destination.updatedAt ? (
-                  <p>
-                    <span className="font-semibold">Last refreshed:</span>{" "}
-                    {formatUpdatedAt(destination.updatedAt)}
-                  </p>
-                ) : null}
-
-                <div className="flex flex-wrap gap-3 pt-2">
-                  <Link
-                    href={`/plans/${destination.slug}?${planQueryString}`}
-                    className={buttonVariants({ variant: "primary" })}
-                  >
-                    Generate trip plan
-                  </Link>
-                  <Link
-                    href={`/split-group/${destination.slug}?${planQueryString}`}
-                    className={buttonVariants({ variant: "secondary" })}
-                  >
-                    Split group plan
-                  </Link>
-                </div>
-              </CardBody>
-            </Card>
-
-            <PlanBCard plan={destination.planB} variant="dark" />
-          </div>
+          ) : null}
         </div>
+
+        <Card>
+          <CardHeader className="space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 space-y-1">
+                <p className="text-xs text-muted">Current decision</p>
+                <h2 className="text-lg font-semibold">{destination.bestActivity}</h2>
+              </div>
+              <div className="shrink-0 text-right">
+                <p className="text-3xl font-semibold tabular-nums">{contextualFitScore}</p>
+                <p className="text-xs text-muted">{contextualFitLabel}</p>
+              </div>
+            </div>
+            <FitScoreBadge score={contextualFitScore} showScore={false} size="sm" />
+          </CardHeader>
+          <CardBody className="space-y-3 text-sm leading-6">
+            {weatherMetrics.length > 0 ? (
+              <p className="text-foreground">{weatherMetrics.slice(0, 3).join(" · ")}</p>
+            ) : null}
+            <p className="text-muted">
+              <span className="text-foreground">Watch out · </span>
+              {destination.mainWarning}
+            </p>
+            {primaryAlert ? (
+              <p className="text-danger">⚠ {primaryAlert.title}</p>
+            ) : null}
+            {destination.updatedAt ? (
+              <p className="text-xs text-muted">Updated {formatUpdatedAt(destination.updatedAt)}</p>
+            ) : null}
+
+            <div className="flex flex-wrap gap-2 pt-1">
+              <Link
+                href={`/plans/${destination.slug}?${planQueryString}`}
+                className={buttonVariants({ variant: "primary", size: "sm" })}
+              >
+                Generate plan
+              </Link>
+              <Link
+                href={`/split-group/${destination.slug}?${planQueryString}`}
+                className={buttonVariants({ variant: "secondary", size: "sm" })}
+              >
+                Split group
+              </Link>
+            </div>
+          </CardBody>
+        </Card>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-[1.02fr_0.98fr]">
+      <section className="grid gap-4 lg:grid-cols-[1fr_1fr]">
         <DestinationHeroImage
           slug={destination.slug}
           name={destination.name}
@@ -185,211 +160,167 @@ export default async function DestinationPage({ params, searchParams }: PageProp
         <DestinationMapCard destination={destination} />
       </section>
 
-      <section className="space-y-4">
-        <AccordionSection
+      <section className="grid gap-4 lg:grid-cols-[1fr_1fr]">
+        <DecisionStatusCard decision={decision} />
+        <PlanBCard plan={destination.planB} />
+      </section>
+
+      <section className="space-y-3">
+        <DetailSection
           eyebrow="Current conditions"
-          title="Weather, alerts, and what changes the call"
+          title="Weather & alerts"
           defaultOpen
         >
-          <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-            <div className="space-y-4">
+          <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+            <div className="space-y-3 text-sm leading-6">
               {destination.liveWeather ? (
                 <>
-                  <div className="flex flex-wrap gap-2">
-                    {weatherMetrics.map((metric) => (
-                      <Badge key={metric} tone="soft">
-                        {metric}
-                      </Badge>
-                    ))}
-                  </div>
-                  <div className="grid gap-3 text-sm leading-6 sm:grid-cols-2">
-                    <p>
-                      <span className="font-semibold">Snapshot date:</span>{" "}
-                      {destination.liveWeather.snapshotDate}
-                    </p>
-                    <p>
-                      <span className="font-semibold">Heat risk:</span>{" "}
-                      {destination.liveWeather.heatRisk ?? 0} / 100
-                    </p>
-                    <p>
-                      <span className="font-semibold">Snow risk:</span>{" "}
-                      {destination.liveWeather.snowRisk ?? 0} / 100
-                    </p>
-                    <p>
-                      <span className="font-semibold">Wind max:</span>{" "}
-                      {destination.liveWeather.windSpeed ?? 0} mph
-                    </p>
-                  </div>
+                  <p className="font-medium">{weatherMetrics.join(" · ")}</p>
+                  <dl className="grid gap-2 text-muted sm:grid-cols-2">
+                    <Row label="Snapshot" value={destination.liveWeather.snapshotDate} />
+                    <Row label="Heat" value={`${destination.liveWeather.heatRisk ?? 0} / 100`} />
+                    <Row label="Snow" value={`${destination.liveWeather.snowRisk ?? 0} / 100`} />
+                    <Row label="Wind max" value={`${destination.liveWeather.windSpeed ?? 0} mph`} />
+                  </dl>
                 </>
               ) : (
-                <p className="text-sm leading-6 text-muted">
-                  Live weather has not been ingested for this destination yet. The seeded guidance
-                  is still available, but the decision gets better after the next sync.
+                <p className="text-muted">
+                  Live weather not yet ingested. Seed guidance still applies.
                 </p>
               )}
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               {activeAlerts.length > 0 ? (
                 activeAlerts.map((alert) => (
                   <div
                     key={`${alert.source}-${alert.title}-${alert.effectiveDate ?? "now"}`}
-                    className="rounded-[24px] border border-white/40 bg-white/55 p-5"
+                    className="rounded-lg border border-line p-4"
                   >
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-1.5">
                       <Badge tone={getAlertTone(alert.severity)}>{alert.severity}</Badge>
-                      <Badge tone="soft">{alert.source.toUpperCase()}</Badge>
-                      <Badge>{alert.alertType}</Badge>
+                      <span className="text-xs text-muted">{alert.source.toUpperCase()} · {alert.alertType}</span>
                     </div>
-                    <h3 className="mt-3 text-xl font-semibold">{alert.title}</h3>
+                    <h3 className="mt-2 text-base font-semibold">{alert.title}</h3>
                     {alert.description ? (
-                      <p className="mt-2 text-sm leading-6 text-muted">{alert.description}</p>
+                      <p className="mt-1 text-sm leading-6 text-muted">{alert.description}</p>
                     ) : null}
-                    <div className="mt-3 grid gap-2 text-sm text-muted sm:grid-cols-2">
-                      <p>
-                        <span className="font-semibold text-foreground">Effective:</span>{" "}
-                        {formatAlertDate(alert.effectiveDate) ?? "Current"}
-                      </p>
-                      <p>
-                        <span className="font-semibold text-foreground">Expires:</span>{" "}
-                        {formatAlertDate(alert.expirationDate) ?? "Not specified"}
-                      </p>
-                    </div>
+                    <p className="mt-2 text-xs text-muted">
+                      {formatAlertDate(alert.effectiveDate) ?? "Now"} → {formatAlertDate(alert.expirationDate) ?? "—"}
+                    </p>
                   </div>
                 ))
               ) : (
-                <div className="rounded-[24px] bg-muted-soft px-5 py-5 text-sm leading-6 text-muted">
-                  No active weather, park, or route alerts are currently being tracked for this destination.
-                </div>
+                <p className="text-sm text-muted">No active alerts.</p>
               )}
             </div>
           </div>
-        </AccordionSection>
+        </DetailSection>
 
-        <AccordionSection
-          eyebrow="Explainable scoring"
-          title="Why this destination lands here"
+        <DetailSection
+          eyebrow="Score breakdown"
+          title="Why it lands here"
           defaultOpen
         >
-          <div className="space-y-4">
-            <p className="text-sm leading-6 text-muted">
-              The fit score is just the top-line answer. These breakdown rows show where the current
-              verdict is being supported versus where it is carrying risk.
-            </p>
-            <div className="grid gap-4 md:grid-cols-2">
-              {scoreRows.map(([label, score]) => (
-                <ScoreBar key={label} label={label} score={score} />
-              ))}
-            </div>
+          <div className="grid gap-2 md:grid-cols-2">
+            {scoreRows.map(([label, score]) => (
+              <ScoreBar key={label} label={label} score={score} />
+            ))}
           </div>
-        </AccordionSection>
+        </DetailSection>
 
-        <AccordionSection
-          eyebrow="Best right now"
-          title="Top activities in the current window"
-        >
-          <div className="grid gap-4 lg:grid-cols-2">
+        <DetailSection eyebrow="Best now" title="Top activities">
+          <div className="grid gap-3 lg:grid-cols-2">
             {destination.activities.map((activity) => (
               <div
                 key={activity.name}
-                className="rounded-[24px] border border-white/40 bg-white/55 p-5"
+                className="rounded-lg border border-line p-4"
               >
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <h3 className="text-xl font-semibold">{activity.name}</h3>
-                  <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <h3 className="text-base font-semibold">{activity.name}</h3>
+                  <div className="flex flex-wrap gap-1.5">
                     <ActivityChip
                       label={activity.name}
                       kind={inferActivityKind(activity.name)}
                       size="sm"
                     />
-                    <Badge tone="soft">{activity.difficulty}</Badge>
+                    <span className="text-xs text-muted">{activity.difficulty}</span>
                   </div>
                 </div>
-                <p className="mt-3 text-sm text-muted">Best time: {activity.bestTime}</p>
-                <p className="mt-2 text-sm leading-6 text-foreground">{activity.whyItFits}</p>
+                <p className="mt-2 text-xs text-muted">Best time · {activity.bestTime}</p>
+                <p className="mt-1.5 text-sm leading-6 text-foreground">{activity.whyItFits}</p>
               </div>
             ))}
           </div>
-        </AccordionSection>
+        </DetailSection>
 
-        <AccordionSection
-          eyebrow="Trip logistics"
-          title="Avoids, stops, town support, and lodging"
-        >
-          <div className="grid gap-6 xl:grid-cols-2">
-            <div className="space-y-6">
-              <div className="space-y-3">
-                <p className="eyebrow">What to avoid</p>
-                {destination.avoid.map((item) => (
-                  <div
-                    key={item}
-                    className="rounded-[20px] bg-danger/6 px-4 py-4 text-sm leading-6"
-                  >
-                    {item}
-                  </div>
-                ))}
+        <DetailSection eyebrow="Logistics" title="Avoids, stops, town & lodging">
+          <div className="grid gap-5 xl:grid-cols-2">
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <p className="text-xs text-muted">What to avoid</p>
+                <ul className="space-y-1.5 text-sm leading-6">
+                  {destination.avoid.map((item) => (
+                    <li key={item} className="flex gap-2">
+                      <span className="text-danger">·</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
 
-              <div className="space-y-3">
-                <p className="eyebrow">Suggested stops</p>
-                {destination.suggestedStops.map((stop) => (
-                  <div key={stop} className="rounded-[20px] bg-muted-soft px-4 py-4 text-sm">
-                    {stop}
-                  </div>
-                ))}
+              <div className="space-y-1.5">
+                <p className="text-xs text-muted">Suggested stops</p>
+                <ul className="space-y-1.5 text-sm leading-6">
+                  {destination.suggestedStops.map((stop) => (
+                    <li key={stop} className="flex gap-2">
+                      <span className="text-muted">·</span>
+                      <span>{stop}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
 
-            <div className="space-y-6">
-              <div className="rounded-[24px] border border-white/40 bg-white/55 p-5">
-                <p className="eyebrow">Food / town support</p>
-                <h3 className="mt-2 text-2xl font-semibold">{destination.foodSupport.nearbyTown}</h3>
-                <p className="mt-3 text-sm leading-6">{destination.foodSupport.note}</p>
-                <div className="mt-4 space-y-3 text-sm leading-6">
-                  <p>
-                    <span className="font-semibold">Cafes:</span>{" "}
-                    {destination.foodSupport.cafes.join(" · ")}
-                  </p>
-                  <p>
-                    <span className="font-semibold">Dinner:</span>{" "}
-                    {destination.foodSupport.dinner.join(" · ")}
-                  </p>
-                  <p>
-                    <span className="font-semibold">Low-effort hangouts:</span>{" "}
-                    {destination.foodSupport.hangouts.join(" · ")}
-                  </p>
-                </div>
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs text-muted">Food / town</p>
+                <h3 className="mt-1 text-base font-semibold">{destination.foodSupport.nearbyTown}</h3>
+                <p className="mt-1.5 text-sm leading-6 text-muted">{destination.foodSupport.note}</p>
+                <dl className="mt-2 space-y-1 text-sm leading-6">
+                  <Row label="Cafes" value={destination.foodSupport.cafes.join(" · ")} />
+                  <Row label="Dinner" value={destination.foodSupport.dinner.join(" · ")} />
+                  <Row label="Hangouts" value={destination.foodSupport.hangouts.join(" · ")} />
+                </dl>
               </div>
 
-              <div className="rounded-[24px] border border-white/40 bg-white/55 p-5">
-                <p className="eyebrow">Lodging guidance</p>
-                <h3 className="mt-2 text-2xl font-semibold">Base town, not hotel promises</h3>
-                <div className="mt-4 space-y-3 text-sm leading-6">
-                  <p>
-                    <span className="font-semibold">Best base:</span> {destination.lodging.bestBase}
-                  </p>
-                  <p>
-                    <span className="font-semibold">Best for:</span> {destination.lodging.bestFor}
-                  </p>
-                  <p>
-                    <span className="font-semibold">Alternative:</span>{" "}
-                    {destination.lodging.alternative}
-                  </p>
-                  <p>
-                    <span className="font-semibold">Tradeoff:</span>{" "}
-                    {destination.lodging.tradeoff}
-                  </p>
-                </div>
+              <div>
+                <p className="text-xs text-muted">Lodging</p>
+                <dl className="mt-2 space-y-1 text-sm leading-6">
+                  <Row label="Best base" value={destination.lodging.bestBase} />
+                  <Row label="Best for" value={destination.lodging.bestFor} />
+                  <Row label="Alternative" value={destination.lodging.alternative} />
+                  <Row label="Tradeoff" value={destination.lodging.tradeoff} />
+                </dl>
               </div>
             </div>
           </div>
-        </AccordionSection>
+        </DetailSection>
       </section>
     </div>
   );
 }
 
-function AccordionSection({
+function Row({ label, value }: Readonly<{ label: string; value: string }>) {
+  return (
+    <div className="grid grid-cols-[100px_1fr] gap-2">
+      <dt className="text-muted">{label}</dt>
+      <dd>{value}</dd>
+    </div>
+  );
+}
+
+function DetailSection({
   eyebrow,
   title,
   children,
@@ -403,21 +334,17 @@ function AccordionSection({
   return (
     <details
       open={defaultOpen}
-      className="group rounded-[28px] border border-white/45 bg-white/70 px-6 py-5 shadow-[0_20px_80px_rgba(24,50,58,0.08)]"
+      className="group rounded-lg border border-line bg-card px-5 py-4"
     >
       <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
-        <div className="space-y-2">
-          <p className="eyebrow">{eyebrow}</p>
-          <h2 className="display-title text-3xl font-semibold text-foreground">{title}</h2>
+        <div>
+          <p className="text-xs text-muted">{eyebrow}</p>
+          <h2 className="text-lg font-semibold text-foreground">{title}</h2>
         </div>
-        <span className="text-sm font-semibold uppercase tracking-[0.16em] text-muted group-open:hidden">
-          Expand
-        </span>
-        <span className="hidden text-sm font-semibold uppercase tracking-[0.16em] text-muted group-open:block">
-          Collapse
-        </span>
+        <span className="text-xs text-muted group-open:hidden">Expand</span>
+        <span className="hidden text-xs text-muted group-open:inline">Collapse</span>
       </summary>
-      <div className="pt-5">{children}</div>
+      <div className="pt-4">{children}</div>
     </details>
   );
 }
@@ -430,13 +357,13 @@ function ScoreBar({
   score: number;
 }>) {
   return (
-    <div className="space-y-2 rounded-[22px] bg-white/55 p-4">
+    <div className="space-y-1.5">
       <div className="flex items-center justify-between gap-4 text-sm">
-        <span>{label}</span>
-        <span className="font-semibold">{score}</span>
+        <span className="text-muted">{label}</span>
+        <span className="font-semibold tabular-nums">{score}</span>
       </div>
       <div
-        className="h-2 rounded-full bg-muted-soft"
+        className="h-1.5 rounded-full bg-muted-soft"
         role="progressbar"
         aria-label={`${label} score`}
         aria-valuemin={0}
@@ -444,7 +371,7 @@ function ScoreBar({
         aria-valuenow={score}
       >
         <div
-          className="h-2 rounded-full bg-[linear-gradient(90deg,#255d6c,#c56d2a)]"
+          className="h-1.5 rounded-full bg-ocean"
           style={{ width: `${score}%` }}
         />
       </div>
