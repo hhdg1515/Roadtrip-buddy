@@ -126,16 +126,10 @@ export default async function SavedPage({ searchParams }: PageProps) {
 
                 <div className="flex flex-wrap gap-2">
                   <Link
-                    href={`/plans/${trip.slug}`}
+                    href={`/destinations/${trip.slug}`}
                     className={buttonVariants({ variant: "primary", size: "sm" })}
                   >
-                    Open plan
-                  </Link>
-                  <Link
-                    href={`/destinations/${trip.slug}`}
-                    className={buttonVariants({ variant: "secondary", size: "sm" })}
-                  >
-                    Conditions
+                    Open trip
                   </Link>
                   <form action={deleteSavedTripAction}>
                     <input type="hidden" name="id" value={trip.id} />

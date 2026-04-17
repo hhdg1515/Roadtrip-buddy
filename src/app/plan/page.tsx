@@ -227,7 +227,7 @@ export default async function PlanPage({ searchParams }: PageProps) {
               {comparisonSet.map((destination, index) => (
                 <Link
                   key={destination.slug}
-                  href={`/plans/${destination.slug}?${queryString}`}
+                  href={`/destinations/${destination.slug}?${queryString}`}
                   className="block rounded-lg bg-muted-soft/50 p-4 transition-colors hover:bg-muted-soft"
                 >
                   <div className="flex items-start justify-between gap-4">

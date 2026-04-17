@@ -8,9 +8,11 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { DecisionStatusCard } from "@/components/ui/decision-status-card";
 import { FitScoreBadge } from "@/components/ui/fit-score-badge";
+import { FormSubmitButton } from "@/components/ui/form-submit-button";
 import { PlanBCard } from "@/components/ui/plan-b-card";
 import { RiskBadge } from "@/components/ui/risk-badge";
-import { getUserPreferences } from "@/lib/account";
+import { getCurrentUser, getUserPreferences } from "@/lib/account";
+import { saveTripPlanAction } from "@/app/plans/actions";
 import { buildScoringContext } from "@/lib/data/openseason";
 import { getDestinationBySlugFromRepository } from "@/lib/data/repository";
 import { getDestinationDecisionStatus } from "@/lib/decision-layer";
@@ -37,9 +39,10 @@ type PageProps = {
 export default async function DestinationPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
   const resolvedSearchParams = searchParams ? await searchParams : {};
-  const [{ preferences }, destination] = await Promise.all([
+  const [{ preferences }, destination, user] = await Promise.all([
     getUserPreferences(),
     getDestinationBySlugFromRepository(slug),
+    getCurrentUser(),
   ]);
 
   if (!destination) {
@@ -57,6 +60,9 @@ export default async function DestinationPage({ params, searchParams }: PageProp
   const contextualFitScore = calculateTripFitScore(destination.breakdown, scoringContext);
   const contextualFitLabel = labelTripFitScore(contextualFitScore);
   const planQueryString = toPlanningQueryString(planningState);
+  const saveReturnTo = `/destinations/${destination.slug}?${planQueryString}`;
+  const saved = getFirstValue(resolvedSearchParams.saved);
+  const status = getFirstValue(resolvedSearchParams.status);
 
   const scoreRows = [
     ["Seasonality", destination.breakdown.seasonality],
@@ -75,6 +81,16 @@ export default async function DestinationPage({ params, searchParams }: PageProp
 
   return (
     <div className="space-y-10 py-8">
+      {saved === "1" ? (
+        <StatusNote tone="default" label="Plan saved" message="This trip is now in your saved list." />
+      ) : null}
+      {status === "save-error" ? (
+        <StatusNote tone="danger" label="Save failed" message="Confirm your session and try again." />
+      ) : null}
+      {status === "signed-in" ? (
+        <StatusNote tone="default" label="Signed in" message="Session active — save when ready." />
+      ) : null}
+
       <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
         <div className="space-y-4">
           <p className="text-xs text-muted">{destination.region}</p>
@@ -132,18 +148,42 @@ export default async function DestinationPage({ params, searchParams }: PageProp
             ) : null}
 
             <div className="flex flex-wrap gap-2 pt-1">
-              <Link
-                href={`/plans/${destination.slug}?${planQueryString}`}
-                className={buttonVariants({ variant: "primary", size: "sm" })}
-              >
-                Generate plan
-              </Link>
-              <Link
-                href={`/split-group/${destination.slug}?${planQueryString}`}
-                className={buttonVariants({ variant: "secondary", size: "sm" })}
-              >
-                Split group
-              </Link>
+              {user ? (
+                <form action={saveTripPlanAction}>
+                  <input type="hidden" name="slug" value={destination.slug} />
+                  <input type="hidden" name="returnTo" value={saveReturnTo} />
+                  <input type="hidden" name="origin" value={planningState.origin} />
+                  <input type="hidden" name="tripLength" value={planningState.tripLength} />
+                  <input type="hidden" name="startDate" value={planningState.startDate ?? ""} />
+                  <input type="hidden" name="drivingTolerance" value={planningState.drivingTolerance} />
+                  <input type="hidden" name="groupProfile" value={planningState.groupProfile} />
+                  <input type="hidden" name="tripFormat" value={planningState.tripFormat} />
+                  <input type="hidden" name="tripIntensity" value={planningState.tripIntensity} />
+                  <input type="hidden" name="lodgingStyle" value={planningState.lodgingStyle} />
+                  <input type="hidden" name="interestMode" value={planningState.interestMode} />
+                  {planningState.interests.map((interest) => (
+                    <input key={interest} type="hidden" name="interests" value={interest} />
+                  ))}
+                  <FormSubmitButton size="sm" pendingLabel="Saving...">
+                    Save plan
+                  </FormSubmitButton>
+                </form>
+              ) : (
+                <Link
+                  href={`/profile?next=${encodeURIComponent(saveReturnTo)}`}
+                  className={buttonVariants({ variant: "primary", size: "sm" })}
+                >
+                  Sign in to save
+                </Link>
+              )}
+              {planningState.groupProfile === "mixed" ? (
+                <Link
+                  href={`/split-group/${destination.slug}?${planQueryString}`}
+                  className={buttonVariants({ variant: "secondary", size: "sm" })}
+                >
+                  Split group
+                </Link>
+              ) : null}
             </div>
           </CardBody>
         </Card>
@@ -163,6 +203,30 @@ export default async function DestinationPage({ params, searchParams }: PageProp
       <section className="grid gap-4 lg:grid-cols-[1fr_1fr]">
         <DecisionStatusCard decision={decision} />
         <PlanBCard plan={destination.planB} />
+      </section>
+
+      <section className="space-y-4">
+        <div>
+          <p className="text-xs text-muted">Day by day</p>
+          <h2 className="text-2xl font-semibold">Practical itinerary</h2>
+        </div>
+
+        <div className="grid gap-3 lg:grid-cols-3">
+          {destination.itinerary.map((day) => (
+            <Card key={day.day}>
+              <CardHeader>
+                <p className="text-xs text-muted">{day.day}</p>
+              </CardHeader>
+              <CardBody className="space-y-1.5 text-sm leading-6">
+                <ItineraryRow label="Morning" value={day.morning} />
+                <ItineraryRow label="Midday" value={day.midday} />
+                <ItineraryRow label="Afternoon" value={day.afternoon} />
+                <ItineraryRow label="Evening" value={day.evening} />
+                <p className="mt-2 text-xs text-muted">{day.note}</p>
+              </CardBody>
+            </Card>
+          ))}
+        </div>
       </section>
 
       <section className="space-y-3">
@@ -318,6 +382,36 @@ function Row({ label, value }: Readonly<{ label: string; value: string }>) {
       <dd>{value}</dd>
     </div>
   );
+}
+
+function ItineraryRow({ label, value }: Readonly<{ label: string; value: string }>) {
+  return (
+    <div className="grid grid-cols-[90px_1fr] gap-2 text-sm">
+      <dt className="text-muted">{label}</dt>
+      <dd className="text-foreground">{value}</dd>
+    </div>
+  );
+}
+
+function StatusNote({
+  tone,
+  label,
+  message,
+}: Readonly<{
+  tone: "default" | "danger";
+  label: string;
+  message: string;
+}>) {
+  return (
+    <div className="flex items-center gap-3 rounded-md bg-muted-soft px-4 py-3 text-sm">
+      <Badge tone={tone}>{label}</Badge>
+      <span className="text-muted">{message}</span>
+    </div>
+  );
+}
+
+function getFirstValue(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
 }
 
 function DetailSection({

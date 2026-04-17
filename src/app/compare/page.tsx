@@ -131,20 +131,12 @@ export default async function ComparePage({ searchParams }: PageProps) {
                   <td className="p-3 text-muted">{destination.planB.alternative}</td>
                   <td className="p-3 text-muted">{destination.lodging.bestBase}</td>
                   <td className="p-3">
-                    <div className="flex flex-col gap-1">
-                      <Link
-                        href={`/plans/${destination.slug}?${planQueryString}`}
-                        className={buttonVariants({ variant: index === 0 ? "primary" : "secondary", size: "sm" })}
-                      >
-                        Plan
-                      </Link>
-                      <Link
-                        href={`/destinations/${destination.slug}`}
-                        className="text-xs text-muted hover:text-foreground"
-                      >
-                        Detail →
-                      </Link>
-                    </div>
+                    <Link
+                      href={`/destinations/${destination.slug}?${planQueryString}`}
+                      className={buttonVariants({ variant: index === 0 ? "primary" : "secondary", size: "sm" })}
+                    >
+                      Open
+                    </Link>
                   </td>
                 </tr>
               );

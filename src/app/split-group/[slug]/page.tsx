@@ -65,13 +65,7 @@ export default async function SplitGroupPlanPage({ params, searchParams }: PageP
               href={`/destinations/${destination.slug}?${queryString}`}
               className={buttonVariants({ variant: "secondary", size: "sm" })}
             >
-              Destination detail
-            </Link>
-            <Link
-              href={`/plans/${destination.slug}?${queryString}`}
-              className={buttonVariants({ variant: "secondary", size: "sm" })}
-            >
-              Full trip plan
+              Open destination
             </Link>
           </div>
         </div>
