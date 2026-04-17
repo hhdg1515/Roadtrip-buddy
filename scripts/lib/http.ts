@@ -28,6 +28,14 @@ export async function fetchNpsJson<T>(url: string): Promise<T> {
   });
 }
 
+export async function fetchCaltransJson<T>(url: string): Promise<T> {
+  return fetchJson<T>(url, {
+    headers: {
+      Accept: "application/json",
+    },
+  });
+}
+
 async function fetchJson<T>(url: string, options: FetchJsonOptions): Promise<T> {
   const response = await fetch(url, {
     headers: options.headers,

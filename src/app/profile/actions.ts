@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { sanitizeNextPath } from "@/lib/safe-next-path";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { getAppBaseUrl } from "@/lib/site-url";
@@ -12,7 +13,7 @@ export async function requestMagicLinkAction(formData: FormData) {
   }
 
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
-  const next = sanitizePath(String(formData.get("next") ?? "/profile"));
+  const next = sanitizeNextPath(String(formData.get("next") ?? "/profile"));
 
   if (!email || !email.includes("@")) {
     redirect(`/profile?status=invalid-email&next=${encodeURIComponent(next)}`);
@@ -105,8 +106,4 @@ function parseList(value: FormDataEntryValue | null) {
     .split(/\r?\n|,/)
     .map((item) => item.trim())
     .filter(Boolean);
-}
-
-function sanitizePath(value: string) {
-  return value.startsWith("/") ? value : "/profile";
 }

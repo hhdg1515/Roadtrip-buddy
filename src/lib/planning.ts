@@ -11,6 +11,18 @@ import {
   type TripIntensity,
   type TripLength,
 } from "@/lib/data/openseason";
+import {
+  parseDrivingTolerance,
+  parseGroupProfile,
+  parseInterestMode,
+  parseInterests,
+  parseLodgingStyle,
+  parseOrigin,
+  parseStartDate,
+  parseTripFormat,
+  parseTripIntensity,
+  parseTripLength,
+} from "@/lib/planning-params";
 
 export type PlanningState = {
   origin: Origin;
@@ -291,85 +303,6 @@ function getDefaultPlanningState(
   };
 }
 
-function parseOrigin(value: string | undefined): Origin | null {
-  if (value === "bay-area" || value === "los-angeles" || value === "san-diego" || value === "sacramento") {
-    return value;
-  }
-
-  return null;
-}
-
-function parseTripLength(value: string | undefined): TripLength | null {
-  if (value === "weekend" || value === "3-days" || value === "5-days" || value === "7-days") {
-    return value;
-  }
-
-  return null;
-}
-
-function parseStartDate(value: string | undefined) {
-  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return null;
-  }
-
-  const parsed = new Date(`${value}T12:00:00`);
-  return Number.isNaN(parsed.getTime()) ? null : value;
-}
-
-function parseDrivingTolerance(value: string | undefined): DrivingTolerance | null {
-  if (value === "tight" || value === "balanced" || value === "stretch") {
-    return value;
-  }
-
-  return null;
-}
-
-function parseGroupProfile(value: string | undefined): GroupProfile | null {
-  if (value === "mixed" || value === "active" || value === "easygoing" || value === "food-first") {
-    return value;
-  }
-
-  return null;
-}
-
-function parseTripFormat(value: string | undefined): TripFormat | null {
-  if (value === "same-day" || value === "one-night" || value === "weekend-stay") {
-    return value;
-  }
-
-  return null;
-}
-
-function parseTripIntensity(value: string | undefined): TripIntensity | null {
-  if (value === "slow" || value === "balanced" || value === "full-days") {
-    return value;
-  }
-
-  return null;
-}
-
-function parseLodgingStyle(value: string | undefined): LodgingStyle | null {
-  if (value === "town-base" || value === "cabin-lodge" || value === "camping") {
-    return value;
-  }
-
-  return null;
-}
-
-function parseInterestMode(value: string | undefined): InterestMode | null {
-  if (value === "open" || value === "specific") {
-    return value;
-  }
-
-  return null;
-}
-
-function parseInterests(value: string | string[] | undefined) {
-  const values = (Array.isArray(value) ? value : value ? [value] : []).filter(Boolean);
-
-  return values.filter(isInterestKey);
-}
-
 function inferOrigin(originCity: string | undefined) {
   const normalized = normalizeText(originCity ?? "");
 
@@ -504,15 +437,4 @@ function normalizeText(value: string) {
 
 function getFirstValue(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
-}
-
-function isInterestKey(value: string): value is InterestKey {
-  return (
-    value === "scenic-views" ||
-    value === "moderate-hiking" ||
-    value === "easy-walks" ||
-    value === "good-food" ||
-    value === "photography" ||
-    value === "snow-play"
-  );
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DestinationHeroImage } from "@/components/destinations/destination-hero-image";
 import { ActivityChip, inferActivityKind } from "@/components/ui/activity-chip";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -26,6 +27,12 @@ export function DestinationCard({
   return (
     <Card className="h-full">
       <CardHeader className="space-y-5">
+        <DestinationHeroImage
+          slug={destination.slug}
+          name={destination.name}
+          region={destination.region}
+          summary={destination.summary}
+        />
         <div
           className="rounded-[24px] border border-white/30 p-5 text-white"
           style={{
@@ -88,7 +95,7 @@ export function DestinationCard({
                   <p className="text-sm leading-6 text-foreground">{primaryAlert.title}</p>
                 </div>
               ) : (
-                <p className="text-sm leading-6 text-muted">No active tracked alerts right now.</p>
+                <p className="text-sm leading-6 text-muted">No active weather, park, or route alerts right now.</p>
               )}
               {destination.updatedAt ? (
                 <p className="text-xs text-muted">

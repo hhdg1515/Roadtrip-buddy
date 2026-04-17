@@ -1,0 +1,18 @@
+<svg width="1600" height="1000" viewBox="0 0 1600 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="1000" fill="#DDE4E0"/>
+  <rect width="1600" height="560" fill="url(#sky)"/>
+  <path d="M0 787C157 730 285 688 425 690C566 692 671 751 800 748C929 745 1012 680 1148 676C1285 672 1418 714 1600 782V1000H0V787Z" fill="#274B48"/>
+  <path d="M466 804L804 235L1141 804H466Z" fill="#576A6B"/>
+  <path d="M620 544L804 235L988 544H620Z" fill="#768789"/>
+  <path d="M738 409L804 298L870 409H738Z" fill="#F0F1EE"/>
+  <path d="M659 651L714 559L769 651H659Z" fill="#F0F1EE" fill-opacity="0.7"/>
+  <path d="M845 651L900 559L955 651H845Z" fill="#F0F1EE" fill-opacity="0.7"/>
+  <path d="M720 182C760 126 788 114 812 114C837 114 867 127 907 182" stroke="#C8D1CF" stroke-width="18" stroke-linecap="round"/>
+  <defs>
+    <linearGradient id="sky" x1="800" y1="0" x2="800" y2="560" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#CBD6D2"/>
+      <stop offset="0.6" stop-color="#E0E6E0"/>
+      <stop offset="1" stop-color="#E5DDD1"/>
+    </linearGradient>
+  </defs>
+</svg>

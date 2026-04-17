@@ -19,7 +19,7 @@ export function SiteNav() {
   return (
     <header className="sticky top-0 z-40 border-b border-white/25 bg-background/70 backdrop-blur-xl">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-10">
-        <Link href="/" className="flex items-center gap-3">
+        <Link href="/" aria-label="OpenSeason home" className="flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#18323a,#255d6c_52%,#c56d2a)] text-sm font-bold tracking-[0.18em] text-white">
             OS
           </div>
@@ -31,7 +31,7 @@ export function SiteNav() {
           </div>
         </Link>
 
-        <nav className="flex flex-wrap gap-2">
+        <nav aria-label="Primary" className="flex flex-wrap gap-2">
           {navItems.map((item) => {
             const isActive =
               item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
@@ -40,6 +40,7 @@ export function SiteNav() {
               <Link
                 key={item.href}
                 href={item.href}
+                aria-current={isActive ? "page" : undefined}
                 className={cn(
                   buttonVariants({
                     variant: isActive ? "primary" : "secondary",

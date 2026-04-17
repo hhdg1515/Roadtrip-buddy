@@ -17,16 +17,12 @@ import { hasSupabaseEnv } from "@/lib/supabase/env";
 
 export async function completeOnboardingAction(formData: FormData) {
   const interestValues = formData.getAll("interests").map(String);
+  let savedToProfile = false;
   const planningState = getPlanningState(
     {
       origin: String(formData.get("origin") ?? ""),
-      tripLength: String(formData.get("tripLength") ?? ""),
-      startDate: String(formData.get("startDate") ?? ""),
       drivingTolerance: String(formData.get("drivingTolerance") ?? ""),
       groupProfile: String(formData.get("groupProfile") ?? ""),
-      tripFormat: String(formData.get("tripFormat") ?? ""),
-      tripIntensity: String(formData.get("tripIntensity") ?? ""),
-      lodgingStyle: String(formData.get("lodgingStyle") ?? ""),
       interestMode: String(formData.get("interestMode") ?? ""),
       interests: interestValues,
     },
@@ -40,6 +36,7 @@ export async function completeOnboardingAction(formData: FormData) {
     } = await supabase.auth.getUser();
 
     if (user) {
+      savedToProfile = true;
       const { preferences } = await getUserPreferences();
       const payload = {
         user_id: user.id,
@@ -78,5 +75,7 @@ export async function completeOnboardingAction(formData: FormData) {
     interests: planningState.interests,
   });
 
-  redirect(`/plan?${query}&status=onboarding-complete`);
+  redirect(
+    `/plan?${query}&status=${savedToProfile ? "onboarding-complete" : "onboarding-session-only"}`,
+  );
 }

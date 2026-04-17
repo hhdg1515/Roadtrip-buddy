@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
+import { sanitizeNextPath } from "@/lib/safe-next-path";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
-  const next = sanitizePath(requestUrl.searchParams.get("next"));
+  const next = sanitizeNextPath(requestUrl.searchParams.get("next"));
 
   if (!code) {
     return NextResponse.redirect(new URL("/profile?status=auth-error", requestUrl.origin));
@@ -27,12 +28,4 @@ export async function GET(request: Request) {
   redirectUrl.searchParams.set("status", "signed-in");
 
   return NextResponse.redirect(redirectUrl);
-}
-
-function sanitizePath(value: string | null) {
-  if (!value || !value.startsWith("/")) {
-    return "/profile";
-  }
-
-  return value;
 }

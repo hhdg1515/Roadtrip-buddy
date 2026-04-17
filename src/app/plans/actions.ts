@@ -3,17 +3,21 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type {
-  DrivingTolerance,
-  GroupProfile,
-  InterestKey,
-  InterestMode,
-  LodgingStyle,
-  Origin,
-  TripFormat,
-  TripIntensity,
-  TripLength,
 } from "@/lib/data/openseason";
 import { getDestinationBySlugFromRepository } from "@/lib/data/repository";
+import {
+  isInterestKey,
+  parseDrivingTolerance,
+  parseGroupProfile,
+  parseInterestMode,
+  parseLodgingStyle,
+  parseOrigin,
+  parseStartDate,
+  parseTripFormat,
+  parseTripIntensity,
+  parseTripLength,
+} from "@/lib/planning-params";
+import { sanitizeNextPath } from "@/lib/safe-next-path";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
@@ -23,7 +27,7 @@ export async function saveTripPlanAction(formData: FormData) {
   }
 
   const slug = String(formData.get("slug") ?? "").trim();
-  const returnTo = sanitizePath(String(formData.get("returnTo") ?? "/saved"));
+  const returnTo = sanitizeNextPath(String(formData.get("returnTo") ?? "/saved"), "/saved");
   const origin = parseOrigin(String(formData.get("origin") ?? ""));
   const tripLength = parseTripLength(String(formData.get("tripLength") ?? ""));
   const startDate = parseStartDate(String(formData.get("startDate") ?? ""));
@@ -133,92 +137,4 @@ export async function saveTripPlanAction(formData: FormData) {
   revalidatePath("/profile");
   revalidatePath(returnTo);
   redirect(`${returnTo}${returnTo.includes("?") ? "&" : "?"}saved=1`);
-}
-
-function sanitizePath(value: string) {
-  return value.startsWith("/") ? value : "/saved";
-}
-
-function parseOrigin(value: string): Origin | null {
-  if (value === "bay-area" || value === "los-angeles" || value === "san-diego" || value === "sacramento") {
-    return value;
-  }
-
-  return null;
-}
-
-function parseTripLength(value: string): TripLength | null {
-  if (value === "weekend" || value === "3-days" || value === "5-days" || value === "7-days") {
-    return value;
-  }
-
-  return null;
-}
-
-function parseStartDate(value: string) {
-  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return null;
-  }
-
-  const parsed = new Date(`${value}T12:00:00`);
-  return Number.isNaN(parsed.getTime()) ? null : value;
-}
-
-function parseDrivingTolerance(value: string): DrivingTolerance | null {
-  if (value === "tight" || value === "balanced" || value === "stretch") {
-    return value;
-  }
-
-  return null;
-}
-
-function parseGroupProfile(value: string): GroupProfile | null {
-  if (value === "mixed" || value === "active" || value === "easygoing" || value === "food-first") {
-    return value;
-  }
-
-  return null;
-}
-
-function parseTripFormat(value: string): TripFormat | null {
-  if (value === "same-day" || value === "one-night" || value === "weekend-stay") {
-    return value;
-  }
-
-  return null;
-}
-
-function parseTripIntensity(value: string): TripIntensity | null {
-  if (value === "slow" || value === "balanced" || value === "full-days") {
-    return value;
-  }
-
-  return null;
-}
-
-function parseLodgingStyle(value: string): LodgingStyle | null {
-  if (value === "town-base" || value === "cabin-lodge" || value === "camping") {
-    return value;
-  }
-
-  return null;
-}
-
-function parseInterestMode(value: string): InterestMode | null {
-  if (value === "open" || value === "specific") {
-    return value;
-  }
-
-  return null;
-}
-
-function isInterestKey(value: string): value is InterestKey {
-  return (
-    value === "scenic-views" ||
-    value === "moderate-hiking" ||
-    value === "easy-walks" ||
-    value === "good-food" ||
-    value === "photography" ||
-    value === "snow-play"
-  );
 }

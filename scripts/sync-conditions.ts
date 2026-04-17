@@ -15,6 +15,7 @@ async function main() {
   console.log("Condition sync complete.");
   console.log(`weather snapshots updated: ${weather.synced}`);
   console.log(`alerts inserted: ${alerts.synced}`);
+  console.log(`caltrans alerts: ${alerts.caltransCount}`);
   console.log(`destination snapshots refreshed: ${snapshots.refreshed}`);
 }
 

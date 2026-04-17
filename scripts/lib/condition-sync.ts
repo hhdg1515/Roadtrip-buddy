@@ -1,5 +1,5 @@
 import { createSupabaseAdminClient } from "./supabase-admin";
-import { fetchNpsJson, fetchNwsJson } from "./http";
+import { fetchCaltransJson, fetchNpsJson, fetchNwsJson } from "./http";
 import { getNpsApiKey } from "./env";
 import { destinationSeedMeta } from "../../src/lib/data/openseason-seed-meta";
 import {
@@ -72,6 +72,66 @@ type SeasonalRuleRow = {
   risk_notes: string[] | null;
 };
 
+type CaltransLaneClosureResponse = {
+  data?: Array<{
+    lcs?: {
+      index?: string;
+      recordTimestamp?: {
+        recordEpoch?: string;
+      };
+      location?: {
+        travelFlowDirection?: string;
+        begin?: {
+          beginNearbyPlace?: string;
+          beginLongitude?: string;
+          beginLatitude?: string;
+          beginCounty?: string;
+          beginRoute?: string;
+          beginRouteSuffix?: string;
+          beginFreeFormDescription?: string;
+        };
+        end?: {
+          endNearbyPlace?: string;
+          endLongitude?: string;
+          endLatitude?: string;
+          endCounty?: string;
+          endRoute?: string;
+          endRouteSuffix?: string;
+          endFreeFormDescription?: string;
+        };
+      };
+      closure?: {
+        closureTimestamp?: {
+          closureStartEpoch?: string;
+          closureEndEpoch?: string;
+          isClosureEndIndefinite?: string;
+        };
+        facility?: string;
+        typeOfClosure?: string;
+        typeOfWork?: string;
+        durationOfClosure?: string;
+        estimatedDelay?: string;
+        lanesClosed?: string;
+        totalExistingLanes?: string;
+        isCHINReportable?: string;
+        code1097?: {
+          isCode1097?: string;
+        };
+        code1098?: {
+          isCode1098?: string;
+        };
+        code1022?: {
+          isCode1022?: string;
+        };
+      };
+    };
+  }>;
+};
+
+type CaltransClosure = NonNullable<
+  NonNullable<CaltransLaneClosureResponse["data"]>[number]["lcs"]
+>;
+
 type NwsPointsResponse = {
   properties: {
     forecastHourly: string;
@@ -141,6 +201,384 @@ function clamp(value: number, min: number, max: number) {
 
 function unique<T>(values: T[]) {
   return [...new Set(values)];
+}
+
+function toBooleanFlag(value: string | null | undefined) {
+  return value?.toLowerCase() === "true";
+}
+
+function parseEpoch(value: string | null | undefined) {
+  if (!value) {
+    return null;
+  }
+
+  const numeric = Number(value);
+
+  if (!Number.isFinite(numeric) || numeric <= 0) {
+    return null;
+  }
+
+  return numeric < 1_000_000_000_000 ? numeric * 1000 : numeric;
+}
+
+function epochToIso(value: number | null) {
+  return value == null ? null : new Date(value).toISOString();
+}
+
+function parseNumber(value: string | number | null | undefined) {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : null;
+  }
+
+  if (!value) {
+    return null;
+  }
+
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
+function haversineMiles(
+  latitudeA: number,
+  longitudeA: number,
+  latitudeB: number,
+  longitudeB: number,
+) {
+  const toRadians = (value: number) => (value * Math.PI) / 180;
+  const earthRadiusMiles = 3958.8;
+  const deltaLatitude = toRadians(latitudeB - latitudeA);
+  const deltaLongitude = toRadians(longitudeB - longitudeA);
+  const startLatitude = toRadians(latitudeA);
+  const endLatitude = toRadians(latitudeB);
+  const arc =
+    Math.sin(deltaLatitude / 2) ** 2 +
+    Math.cos(startLatitude) * Math.cos(endLatitude) * Math.sin(deltaLongitude / 2) ** 2;
+
+  return earthRadiusMiles * 2 * Math.atan2(Math.sqrt(arc), Math.sqrt(1 - arc));
+}
+
+function normalizeRoute(route: string | null | undefined, suffix: string | null | undefined = "") {
+  const raw = route?.trim().toUpperCase();
+
+  if (!raw) {
+    return null;
+  }
+
+  const normalizedBase = /^\d+$/.test(raw) ? `SR-${raw}` : raw;
+  const normalizedSuffix = suffix?.trim().toUpperCase() ?? "";
+
+  return `${normalizedBase}${normalizedSuffix}`.replace(/\s+/g, "");
+}
+
+function getClosureDistanceMiles(destination: DestinationRow, closure: CaltransClosure) {
+  if (destination.latitude == null || destination.longitude == null) {
+    return null;
+  }
+
+  const points = [
+    {
+      latitude: parseNumber(closure.location?.begin?.beginLatitude),
+      longitude: parseNumber(closure.location?.begin?.beginLongitude),
+    },
+    {
+      latitude: parseNumber(closure.location?.end?.endLatitude),
+      longitude: parseNumber(closure.location?.end?.endLongitude),
+    },
+  ].filter((point): point is { latitude: number; longitude: number } => {
+    return point.latitude != null && point.longitude != null;
+  });
+
+  if (points.length === 0) {
+    return null;
+  }
+
+  return Math.min(
+    ...points.map((point) =>
+      haversineMiles(destination.latitude!, destination.longitude!, point.latitude, point.longitude),
+    ),
+  );
+}
+
+function isActiveCaltransClosure(closure: CaltransClosure, nowEpoch: number) {
+  const startEpoch = parseEpoch(closure.closure?.closureTimestamp?.closureStartEpoch);
+  const endEpoch = parseEpoch(closure.closure?.closureTimestamp?.closureEndEpoch);
+  const started = toBooleanFlag(closure.closure?.code1097?.isCode1097) || (startEpoch != null && startEpoch <= nowEpoch);
+  const ended = toBooleanFlag(closure.closure?.code1098?.isCode1098);
+  const cancelled = toBooleanFlag(closure.closure?.code1022?.isCode1022);
+  const indefinite = toBooleanFlag(closure.closure?.closureTimestamp?.isClosureEndIndefinite);
+
+  if (cancelled || ended || !started) {
+    return false;
+  }
+
+  if (!indefinite && endEpoch != null && endEpoch < nowEpoch) {
+    return false;
+  }
+
+  return true;
+}
+
+function matchesCaltransWatch(
+  destination: DestinationRow,
+  watch: NonNullable<(typeof destinationSeedMeta)[keyof typeof destinationSeedMeta]["caltransWatch"]>,
+  closure: CaltransClosure,
+) {
+  const route = normalizeRoute(
+    closure.location?.begin?.beginRoute ?? closure.location?.end?.endRoute,
+    closure.location?.begin?.beginRouteSuffix ?? closure.location?.end?.endRouteSuffix,
+  );
+  const watchedRoutes = watch.routes?.map((value) => normalizeRoute(value, "")) ?? [];
+  const routeMatch = watchedRoutes.length === 0 ? true : (route != null && watchedRoutes.includes(route));
+  const countyText = `${closure.location?.begin?.beginCounty ?? ""} ${closure.location?.end?.endCounty ?? ""}`.toLowerCase();
+  const countyMatch =
+    watch.counties == null || watch.counties.length === 0
+      ? true
+      : watch.counties.some((county) => countyText.includes(county.toLowerCase()));
+  const hintText = `${closure.location?.begin?.beginNearbyPlace ?? ""} ${closure.location?.end?.endNearbyPlace ?? ""} ${closure.location?.begin?.beginFreeFormDescription ?? ""} ${closure.location?.end?.endFreeFormDescription ?? ""}`.toLowerCase();
+  const hintMatch =
+    watch.corridorHints == null || watch.corridorHints.length === 0
+      ? true
+      : watch.corridorHints.some((hint) => hintText.includes(hint.toLowerCase()));
+  const distanceMiles = getClosureDistanceMiles(destination, closure);
+  const withinDistance =
+    distanceMiles == null ? true : distanceMiles <= (watch.maxDistanceMiles ?? 50);
+
+  return routeMatch && withinDistance && countyMatch && hintMatch;
+}
+
+function inferCaltransSeverity(closure: CaltransClosure) {
+  const closureType = closure.closure?.typeOfClosure?.toLowerCase() ?? "";
+  const workType = closure.closure?.typeOfWork?.toLowerCase() ?? "";
+  const duration = closure.closure?.durationOfClosure?.toLowerCase() ?? "";
+  const delayMinutes = parseNumber(closure.closure?.estimatedDelay);
+
+  if (
+    /\bfull\b/.test(closureType) ||
+    /\bslide|washout|bridge|rock|emergency|fire\b/.test(workType) ||
+    delayMinutes != null && delayMinutes >= 30 ||
+    duration.includes("long term")
+  ) {
+    return "Severe";
+  }
+
+  if (
+    /\bone-way|lane|alternating|traffic\b/.test(closureType) ||
+    /\bguardrail|utility|drainage|paving\b/.test(workType) ||
+    (delayMinutes != null && delayMinutes >= 10)
+  ) {
+    return "Moderate";
+  }
+
+  return "Minor";
+}
+
+function formatCaltransTitle(closure: CaltransClosure) {
+  const route =
+    normalizeRoute(
+      closure.location?.begin?.beginRoute ?? closure.location?.end?.endRoute,
+      closure.location?.begin?.beginRouteSuffix ?? closure.location?.end?.endRouteSuffix,
+    ) ?? "Route access";
+  const nearbyPlace =
+    closure.location?.begin?.beginNearbyPlace ||
+    closure.location?.end?.endNearbyPlace ||
+    closure.location?.begin?.beginCounty ||
+    closure.location?.end?.endCounty ||
+    "current access point";
+  const closureType = closure.closure?.typeOfClosure ?? "closure";
+
+  return `${route} ${closureType} near ${nearbyPlace}`;
+}
+
+function formatCaltransDescription(closure: CaltransClosure) {
+  const beginDescription =
+    closure.location?.begin?.beginFreeFormDescription ||
+    closure.location?.begin?.beginNearbyPlace ||
+    closure.location?.begin?.beginCounty ||
+    "the start of the segment";
+  const endDescription =
+    closure.location?.end?.endFreeFormDescription ||
+    closure.location?.end?.endNearbyPlace ||
+    closure.location?.end?.endCounty ||
+    "the end of the segment";
+  const route =
+    normalizeRoute(
+      closure.location?.begin?.beginRoute ?? closure.location?.end?.endRoute,
+      closure.location?.begin?.beginRouteSuffix ?? closure.location?.end?.endRouteSuffix,
+    ) ?? "This route";
+  const workType = closure.closure?.typeOfWork ?? "road work";
+  const duration = closure.closure?.durationOfClosure ?? "Current";
+  const delayMinutes = parseNumber(closure.closure?.estimatedDelay);
+  const direction = closure.location?.travelFlowDirection ? `${closure.location.travelFlowDirection.toLowerCase()}bound` : "travel";
+  const parts = [
+    `${workType} is affecting ${direction} travel on ${route} from ${beginDescription} to ${endDescription}.`,
+    `${duration} closure pattern.`,
+  ];
+
+  if (delayMinutes != null) {
+    parts.push(`Estimated delay is about ${delayMinutes} minutes.`);
+  } else if (
+    closure.closure?.estimatedDelay &&
+    closure.closure.estimatedDelay.toLowerCase() !== "not reported"
+  ) {
+    parts.push(`Estimated delay: ${closure.closure.estimatedDelay}.`);
+  }
+
+  return parts.join(" ");
+}
+
+function isRouteAccessAlert(alert: AlertRow) {
+  const text = `${alert.alert_type} ${alert.title} ${alert.description ?? ""}`.toLowerCase();
+  return (
+    alert.source === "caltrans" ||
+    /\bclosed|closure|road closed|lane|one-way traffic|chain control|slide|washout|highway\b/.test(
+      text,
+    )
+  );
+}
+
+function getRouteAccessAlert(alerts: AlertRow[]) {
+  return alerts
+    .filter(isRouteAccessAlert)
+    .sort((left, right) => alertSortWeight(right) - alertSortWeight(left))[0];
+}
+
+function joinWithAnd(values: string[]) {
+  if (values.length === 0) {
+    return "";
+  }
+
+  if (values.length === 1) {
+    return values[0]!;
+  }
+
+  if (values.length === 2) {
+    return `${values[0]} and ${values[1]}`;
+  }
+
+  return `${values.slice(0, -1).join(", ")}, and ${values[values.length - 1]}`;
+}
+
+function parseEstimatedDelayMinutes(alert: AlertRow) {
+  const match = `${alert.title} ${alert.description ?? ""}`.match(/(\d+)\s*minutes?/i);
+  return match ? Number(match[1]) : null;
+}
+
+function buildRouteFallbackAlternative(destination: Destination) {
+  const meta = destinationSeedMeta[destination.slug as keyof typeof destinationSeedMeta];
+  const anchor = destination.lodging.bestBase || destination.foodSupport.nearbyTown;
+  const coreStops = destination.suggestedStops.slice(0, 3);
+  const stopSummary = joinWithAnd(coreStops);
+
+  if (meta?.destinationType.includes("desert")) {
+    return `Shift to an early and late loop around ${anchor}${stopSummary ? ` with ${stopSummary}` : ""} instead of forcing the most remote segment.`;
+  }
+
+  if (
+    meta?.destinationType.includes("coast") ||
+    meta?.destinationType.includes("seashore") ||
+    meta?.destinationType.includes("island")
+  ) {
+    return `Keep the trip anchored around ${anchor}${stopSummary ? ` and ${stopSummary}` : ""} instead of forcing the full coastal corridor.`;
+  }
+
+  return `Base out of ${anchor}${stopSummary ? ` and keep the trip to lower-friction stops like ${stopSummary}` : ""} instead of forcing the full access loop.`;
+}
+
+function buildWeatherFallbackAlternative(destination: Destination, mode: "heat" | "snow" | "wind") {
+  const anchor = destination.lodging.bestBase || destination.foodSupport.nearbyTown;
+  const town = destination.foodSupport.nearbyTown;
+  const primaryStops = joinWithAnd(destination.suggestedStops.slice(0, 2));
+
+  if (mode === "heat") {
+    return `Front-load one outdoor block near ${primaryStops || anchor}, take the long midday reset in ${town}, then use one shorter sunset stop instead of forcing the full daytime itinerary.`;
+  }
+
+  if (mode === "snow") {
+    return `Keep the trip to lower-elevation access near ${anchor}${primaryStops ? ` and ${primaryStops}` : ""} instead of forcing the highest road segment.`;
+  }
+
+  return `Bias the day toward sheltered stops near ${anchor}${primaryStops ? ` and ${primaryStops}` : ""}, and only keep one exposed viewpoint block if conditions still feel worth it.`;
+}
+
+function buildDynamicPlanB(destination: Destination, weather: WeatherSummary | null, alerts: AlertRow[]) {
+  const seededPlan = destination.planB;
+  const routeAlert = getRouteAccessAlert(alerts);
+
+  if (routeAlert) {
+    const delayMinutes = parseEstimatedDelayMinutes(routeAlert);
+    return {
+      trigger: `Current route access alerts, including "${routeAlert.title}", still make the full access loop feel fragile`,
+      alternative: buildRouteFallbackAlternative(destination),
+      whyItWorks:
+        "You keep the highest-confidence scenery and town support while cutting the most fragile route segment out of the day.",
+      timeDifference:
+        delayMinutes != null
+          ? `Usually cuts roughly ${delayMinutes}-${delayMinutes + 45} minutes of reroute churn.`
+          : "Usually saves 45-90 minutes of route churn versus forcing the full loop.",
+    };
+  }
+
+  if ((weather?.heatRisk ?? 0) >= 65) {
+    return {
+      trigger: "If afternoon heat keeps the full itinerary from feeling worthwhile",
+      alternative: buildWeatherFallbackAlternative(destination, "heat"),
+      whyItWorks:
+        "You keep the best light and scenery windows while moving the most exposed block out of the middle of the day.",
+      timeDifference: "Usually trades 2-4 hours of exposed midday time for a safer reset block.",
+    };
+  }
+
+  if ((weather?.snowRisk ?? 0) >= 55) {
+    return {
+      trigger: "If higher-elevation access still feels too wintry to commit to",
+      alternative: buildWeatherFallbackAlternative(destination, "snow"),
+      whyItWorks:
+        "The trip still lands because the lower-elevation version preserves scenery without chain-control roulette.",
+      timeDifference: "Usually trims 30-90 minutes of uncertain road time.",
+    };
+  }
+
+  if ((weather?.windSpeed ?? 0) >= 25 || (weather?.precipitationProbability ?? 0) >= 60) {
+    return {
+      trigger: "If wind or rain makes the exposed route feel less worth it",
+      alternative: buildWeatherFallbackAlternative(destination, "wind"),
+      whyItWorks:
+        "You preserve the trip mood while cutting the most weather-sensitive stretch out of the day.",
+      timeDifference: "Usually saves 30-60 minutes of exposed driving and standing around.",
+    };
+  }
+
+  return seededPlan;
+}
+
+function computePlanBScore(destination: Destination, weather: WeatherSummary | null, alerts: AlertRow[]) {
+  let score = destination.breakdown.planB;
+  const routeAlert = getRouteAccessAlert(alerts);
+
+  if (!routeAlert && alerts.length === 0 && (weather?.heatRisk ?? 0) < 65 && (weather?.snowRisk ?? 0) < 55 && (weather?.windSpeed ?? 0) < 25 && (weather?.precipitationProbability ?? 0) < 60) {
+    return clamp(score + 5, 32, 96);
+  }
+
+  if (routeAlert) {
+    score -= Math.round(severityPenalty(routeAlert.severity) * 0.4);
+    score += 4;
+  }
+
+  if ((weather?.heatRisk ?? 0) >= 80 || (weather?.snowRisk ?? 0) >= 70) {
+    score -= 8;
+  } else if ((weather?.heatRisk ?? 0) >= 65 || (weather?.snowRisk ?? 0) >= 55) {
+    score -= 4;
+  }
+
+  if ((weather?.windSpeed ?? 0) >= 30 || (weather?.precipitationProbability ?? 0) >= 70) {
+    score -= 4;
+  }
+
+  if (alerts.length >= 2) {
+    score -= Math.min(6, alerts.length * 2);
+  }
+
+  return clamp(score, 24, 92);
 }
 
 function parseWindSpeedMph(input: string) {
@@ -280,7 +718,11 @@ function computeAlertScore(alerts: AlertRow[], destination: Destination) {
     score -= severityPenalty(alert.severity);
 
     const title = `${alert.alert_type} ${alert.title}`.toLowerCase();
-    if (/\bclosed|closure|road closed|fire|flood|evac|heat advisory|winter storm\b/.test(title)) {
+    if (
+      /\bclosed|closure|road closed|lane|one-way traffic|slide|washout|chain control|fire|flood|evac|heat advisory|winter storm\b/.test(
+        title,
+      )
+    ) {
       score -= 6;
     }
   }
@@ -321,7 +763,7 @@ function deriveRiskBadges(
   for (const alert of alerts) {
     const title = `${alert.alert_type} ${alert.title}`.toLowerCase();
 
-    if (/\bclosed|closure|road closed\b/.test(title)) {
+    if (/\bclosed|closure|road closed|lane|one-way traffic|slide|washout|chain control\b/.test(title)) {
       badges.add("Road closure risk");
     }
     if (/\bfire|smoke\b/.test(title)) {
@@ -354,7 +796,7 @@ function buildWeatherSentence(weather: WeatherSummary | null) {
 
 function buildAlertSentence(alerts: AlertRow[]) {
   if (alerts.length === 0) {
-    return "No active NWS or park alerts are currently being tracked for this destination.";
+    return "No active weather, park, or route alerts are currently being tracked for this destination.";
   }
 
   const primaryAlert = getPrimaryAlert(alerts);
@@ -554,6 +996,16 @@ export async function syncAlerts() {
   const supabase = createSupabaseAdminClient();
   const destinations = await getDestinationRows();
   const rowsToInsert: AlertRow[] = [];
+  const nowEpoch = Date.now();
+  const districtIds = unique(
+    destinations.flatMap((destination) => {
+      const watch =
+        destinationSeedMeta[destination.slug as keyof typeof destinationSeedMeta]?.caltransWatch;
+
+      return watch?.districts ?? [];
+    }),
+  ).sort((left, right) => left - right);
+  const caltransClosuresByDistrict = new Map<number, CaltransClosure[]>();
 
   const destinationIds = destinations.map((destination) => destination.id);
   if (destinationIds.length > 0) {
@@ -561,10 +1013,27 @@ export async function syncAlerts() {
       .from("alerts")
       .delete()
       .in("destination_id", destinationIds)
-      .in("source", ["nws", "nps"]);
+      .in("source", ["nws", "nps", "caltrans"]);
 
     if (deleteError) {
       throw deleteError;
+    }
+  }
+
+  for (const district of districtIds) {
+    try {
+      const districtCode = String(district).padStart(2, "0");
+      const response = await fetchCaltransJson<CaltransLaneClosureResponse>(
+        `https://cwwp2.dot.ca.gov/data/d${district}/lcs/lcsStatusD${districtCode}.json`,
+      );
+      const activeClosures = (response.data ?? [])
+        .map((entry) => entry.lcs)
+        .filter((closure): closure is CaltransClosure => closure != null)
+        .filter((closure) => isActiveCaltransClosure(closure, nowEpoch));
+
+      caltransClosuresByDistrict.set(district, activeClosures);
+    } catch (error) {
+      console.warn(`Skipping CalTrans lane-closure sync for district ${district}:`, error);
     }
   }
 
@@ -628,10 +1097,71 @@ export async function syncAlerts() {
         console.warn(`Skipping NPS alerts for ${destination.slug}:`, error);
       }
     }
+
+    const caltransWatch =
+      destinationSeedMeta[destination.slug as keyof typeof destinationSeedMeta]?.caltransWatch;
+
+    if (caltransWatch) {
+      const matchingClosures = caltransWatch.districts.flatMap((district) => {
+        return (caltransClosuresByDistrict.get(district) ?? []).filter((closure) =>
+          matchesCaltransWatch(destination, caltransWatch, closure),
+        );
+      });
+
+      matchingClosures
+        .sort((left, right) => {
+          const severityDelta =
+            severityPenalty(inferCaltransSeverity(right)) - severityPenalty(inferCaltransSeverity(left));
+
+          if (severityDelta !== 0) {
+            return severityDelta;
+          }
+
+          const leftDistance = getClosureDistanceMiles(destination, left) ?? Number.POSITIVE_INFINITY;
+          const rightDistance = getClosureDistanceMiles(destination, right) ?? Number.POSITIVE_INFINITY;
+          return leftDistance - rightDistance;
+        })
+        .slice(0, 4)
+        .forEach((closure) => {
+          const startEpoch = parseEpoch(closure.closure?.closureTimestamp?.closureStartEpoch);
+          const endEpoch = parseEpoch(closure.closure?.closureTimestamp?.closureEndEpoch);
+
+          rowsToInsert.push({
+            destination_id: destination.id,
+            source: "caltrans",
+            source_id: closure.index ?? null,
+            alert_type: "Road access",
+            severity: inferCaltransSeverity(closure),
+            title: formatCaltransTitle(closure),
+            description: formatCaltransDescription(closure),
+            effective_date: epochToIso(startEpoch),
+            expiration_date: epochToIso(endEpoch),
+          });
+        });
+    }
   }
 
-  if (rowsToInsert.length > 0) {
-    const { error: insertError } = await supabase.from("alerts").insert(rowsToInsert);
+  const dedupedRows = unique(
+    rowsToInsert.map((row) => JSON.stringify([row.destination_id, row.source, row.alert_type, row.title])),
+  ).map((serialized) => {
+    const [destination_id, source, alert_type, title] = JSON.parse(serialized) as [
+      string,
+      string,
+      string,
+      string,
+    ];
+
+    return rowsToInsert.find(
+      (row) =>
+        row.destination_id === destination_id &&
+        row.source === source &&
+        row.alert_type === alert_type &&
+        row.title === title,
+    )!;
+  });
+
+  if (dedupedRows.length > 0) {
+    const { error: insertError } = await supabase.from("alerts").insert(dedupedRows);
 
     if (insertError) {
       throw insertError;
@@ -639,9 +1169,10 @@ export async function syncAlerts() {
   }
 
   return {
-    synced: rowsToInsert.length,
-    nwsCount: rowsToInsert.filter((row) => row.source === "nws").length,
-    npsCount: rowsToInsert.filter((row) => row.source === "nps").length,
+    synced: dedupedRows.length,
+    nwsCount: dedupedRows.filter((row) => row.source === "nws").length,
+    npsCount: dedupedRows.filter((row) => row.source === "nps").length,
+    caltransCount: dedupedRows.filter((row) => row.source === "caltrans").length,
   };
 }
 
@@ -732,12 +1263,14 @@ export async function refreshDestinationSnapshots() {
         : null;
       const alerts = activeAlertsByDestination.get(destinationRow.id) ?? [];
       const seasonalRule = seasonalityByDestination.get(destinationRow.id);
+      const dynamicPlanB = buildDynamicPlanB(seeded, weather, alerts);
 
       const breakdown: ScoreBreakdown = {
         ...seeded.breakdown,
         seasonality: seasonalRule?.score ?? seeded.breakdown.seasonality,
         weather: computeWeatherScore(seeded, weather),
         alerts: computeAlertScore(alerts, seeded),
+        planB: computePlanBScore(seeded, weather, alerts),
       };
 
       const fitScore = calculateTripFitScore(breakdown);
@@ -761,7 +1294,7 @@ export async function refreshDestinationSnapshots() {
         suggested_stops: seeded.suggestedStops,
         food_support: seeded.foodSupport,
         lodging: seeded.lodging,
-        plan_b: seeded.planB,
+        plan_b: dynamicPlanB,
         itinerary: seeded.itinerary,
         current_fit_score: fitScore,
         current_fit_label: fitLabel,

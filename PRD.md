@@ -295,15 +295,15 @@ Outputs:
 
 ---
 
-## 7.4 AI Explanation Layer
+## 7.4 Explanation Layer
 
-The AI should explain recommendations in plain language.
+The product should explain recommendations in plain language using deterministic inputs and templated reasoning.
 
 Example:
 
 > Death Valley is a strong pick for this weekend because temperatures are mild, most major viewpoints are accessible, and this is one of the best seasonal windows before summer heat makes the park harder to enjoy. Avoid long exposed hikes in the afternoon. Plan B is Joshua Tree + Palm Springs if lodging near Furnace Creek is too expensive.
 
-The AI must not invent facts. It should cite or label the source type internally:
+The explanation layer must not invent facts. It should cite or label the source type internally:
 
 * Weather forecast
 * Public land alert
@@ -327,6 +327,7 @@ Do not build these in MVP:
 * Full offline navigation
 * Paid subscription system
 * Multi-country support
+* Chat-based AI itinerary generation
 
 These will slow the project down and create data/legal/API problems.
 
@@ -602,7 +603,7 @@ Affiliate should not be the MVP dependency.
 This project should demonstrate:
 
 * Product thinking
-* AI system design
+* Decision system design
 * API integration
 * Geospatial reasoning
 * Data ranking/scoring
@@ -620,7 +621,7 @@ Recommended:
 * React Native with Expo
 * Mapbox map view
 * Card-based recommendation UI
-* AI chat/search interface
+* Search + filter interface
 
 Alternative:
 
@@ -637,11 +638,11 @@ Recommended:
 * Redis or simple cache layer for API responses
 * Scheduled data refresh jobs
 
-### AI Layer
+### Explanation Layer
 
-* LLM used for summarization and itinerary generation
 * Deterministic scoring engine used for ranking
-* AI should not be the source of truth
+* Structured explanation layer used for summaries and trip framing
+* No LLM dependency required for MVP
 
 ### Data Storage
 
@@ -736,11 +737,11 @@ Core tables:
 
 ---
 
-## 18. AI Prompting Strategy
+## 18. Explanation Strategy
 
-The AI should receive structured context, not raw open-ended instructions.
+The explanation layer should receive structured context, not raw open-ended instructions.
 
-### Input to AI
+### Inputs
 
 * User origin
 * Dates
@@ -753,7 +754,7 @@ The AI should receive structured context, not raw open-ended instructions.
 * Nearby places
 * Lodging area guidance
 
-### AI Output Format
+### Output Format
 
 * Recommendation summary
 * Why this destination
@@ -766,7 +767,7 @@ The AI should receive structured context, not raw open-ended instructions.
 
 ### Guardrails
 
-AI must not claim:
+The explanation layer must not claim:
 
 * Real-time hotel availability unless connected to a verified booking source
 * Trail conditions unless from a verified source
@@ -795,7 +796,7 @@ Build:
 * Basic destination cards
 * Basic trip fit score
 * Mock weather data or one weather API integration
-* AI-generated explanation
+* Deterministic explanation copy
 
 ### Phase 2: Real API Integration
 
@@ -834,7 +835,7 @@ Add:
 
 The Portfolio narrative should be:
 
-> I built an AI-powered California outdoor road trip copilot that combines public land data, weather, seasonality rules, map data, and user preferences to recommend what is actually worth doing right now.
+> I built a California outdoor road trip decision engine that combines public land data, weather, seasonality rules, map data, and user preferences to recommend what is actually worth doing right now.
 
 Show:
 
@@ -843,7 +844,7 @@ Show:
 * Why California is the right scope
 * API/data limitations
 * Scoring model
-* AI summarization layer
+* Explanation layer
 * UI flow
 * Example trip: Bay Area to Yosemite vs Tahoe vs Big Sur
 * Example mixed group: one skier, one non-skier in Tahoe

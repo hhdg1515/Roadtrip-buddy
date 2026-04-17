@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { DestinationHeroImage } from "@/components/destinations/destination-hero-image";
+import { DestinationMapCard } from "@/components/destinations/destination-map-card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -177,6 +179,16 @@ export default async function PlanDetailPage({ params, searchParams }: PageProps
             </p>
           </CardBody>
         </Card>
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-[1.02fr_0.98fr]">
+        <DestinationHeroImage
+          slug={destination.slug}
+          name={destination.name}
+          region={destination.region}
+          summary={destination.summary}
+        />
+        <DestinationMapCard destination={destination} focusOrigin={planningState.origin} />
       </section>
 
       <section className="space-y-6">

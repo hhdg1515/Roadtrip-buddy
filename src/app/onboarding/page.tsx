@@ -9,11 +9,7 @@ import {
   drivingToleranceOptions,
   groupProfileOptions,
   interestOptions,
-  lodgingStyleOptions,
   originOptions,
-  tripFormatOptions,
-  tripIntensityOptions,
-  tripLengthOptions,
 } from "@/lib/data/openseason";
 import { getPlanningState } from "@/lib/planning";
 import { completeOnboardingAction } from "@/app/onboarding/actions";
@@ -27,7 +23,7 @@ export default async function OnboardingPage() {
       <SectionHeading
         eyebrow="Onboarding"
         title="Start with a useful trip brief"
-        description="OpenSeason should ask only for the minimum needed to make recommendations useful. You can skip this and use defaults, but this screen is the cleanest way to make the shortlist feel personal from the first click."
+        description="This should stay light. Set the four defaults that matter most, then finish the rest in the planning screen after you see actual shortlist pressure."
       />
 
       <div className="grid gap-6 lg:grid-cols-[1fr_0.92fr]">
@@ -39,8 +35,9 @@ export default async function OnboardingPage() {
           <CardBody className="space-y-6">
             <form action={completeOnboardingAction} className="space-y-6">
               <div className="grid gap-5 md:grid-cols-2">
-                <Field label="Origin city">
+                <Field label="Origin city" htmlFor="onboarding-origin">
                   <select
+                    id="onboarding-origin"
                     name="origin"
                     defaultValue={planningState.origin}
                     className="h-12 w-full rounded-[18px] border border-line bg-white/85 px-4 text-sm text-foreground outline-none transition focus:border-ocean/35 focus:ring-2 focus:ring-ocean/18"
@@ -53,8 +50,9 @@ export default async function OnboardingPage() {
                   </select>
                 </Field>
 
-                <Field label="Weekend drive tolerance">
+                <Field label="Weekend drive tolerance" htmlFor="onboarding-driving-tolerance">
                   <select
+                    id="onboarding-driving-tolerance"
                     name="drivingTolerance"
                     defaultValue={planningState.drivingTolerance}
                     className="h-12 w-full rounded-[18px] border border-line bg-white/85 px-4 text-sm text-foreground outline-none transition focus:border-ocean/35 focus:ring-2 focus:ring-ocean/18"
@@ -67,8 +65,9 @@ export default async function OnboardingPage() {
                   </select>
                 </Field>
 
-                <Field label="Typical group">
+                <Field label="Typical group" htmlFor="onboarding-group-profile">
                   <select
+                    id="onboarding-group-profile"
                     name="groupProfile"
                     defaultValue={planningState.groupProfile}
                     className="h-12 w-full rounded-[18px] border border-line bg-white/85 px-4 text-sm text-foreground outline-none transition focus:border-ocean/35 focus:ring-2 focus:ring-ocean/18"
@@ -80,40 +79,12 @@ export default async function OnboardingPage() {
                     ))}
                   </select>
                 </Field>
-
-                <Field label="Default lodging base">
-                  <select
-                    name="lodgingStyle"
-                    defaultValue={planningState.lodgingStyle}
-                    className="h-12 w-full rounded-[18px] border border-line bg-white/85 px-4 text-sm text-foreground outline-none transition focus:border-ocean/35 focus:ring-2 focus:ring-ocean/18"
-                  >
-                    {lodgingStyleOptions.map((option) => (
-                      <option key={option.id} value={option.id}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-
-                <Field label="Default trip format">
-                  <select
-                    name="tripFormat"
-                    defaultValue={planningState.tripFormat}
-                    className="h-12 w-full rounded-[18px] border border-line bg-white/85 px-4 text-sm text-foreground outline-none transition focus:border-ocean/35 focus:ring-2 focus:ring-ocean/18"
-                  >
-                    {tripFormatOptions.map((option) => (
-                      <option key={option.id} value={option.id}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
               </div>
 
-              <div className="space-y-3">
-                <p className="text-sm font-semibold uppercase tracking-[0.14em] text-muted">
+              <fieldset className="space-y-3">
+                <legend className="text-sm font-semibold uppercase tracking-[0.14em] text-muted">
                   Favorite trip types
-                </p>
+                </legend>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <label className="flex items-center gap-3 rounded-[18px] border border-white/50 bg-white/70 px-4 py-3 text-sm text-foreground">
                     <input
@@ -153,53 +124,14 @@ export default async function OnboardingPage() {
                     </label>
                   ))}
                 </div>
-              </div>
-
-              <div className="grid gap-5 md:grid-cols-3">
-                <Field label="Trip length">
-                  <select
-                    name="tripLength"
-                    defaultValue={planningState.tripLength}
-                    className="h-12 w-full rounded-[18px] border border-line bg-white/85 px-4 text-sm text-foreground outline-none transition focus:border-ocean/35 focus:ring-2 focus:ring-ocean/18"
-                  >
-                    {tripLengthOptions.map((option) => (
-                      <option key={option.id} value={option.id}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-
-                <Field label="Start date">
-                  <input
-                    type="date"
-                    name="startDate"
-                    defaultValue={planningState.startDate ?? ""}
-                    className="h-12 w-full rounded-[18px] border border-line bg-white/85 px-4 text-sm text-foreground outline-none transition focus:border-ocean/35 focus:ring-2 focus:ring-ocean/18"
-                  />
-                </Field>
-
-                <Field label="Day intensity">
-                  <select
-                    name="tripIntensity"
-                    defaultValue={planningState.tripIntensity}
-                    className="h-12 w-full rounded-[18px] border border-line bg-white/85 px-4 text-sm text-foreground outline-none transition focus:border-ocean/35 focus:ring-2 focus:ring-ocean/18"
-                  >
-                    {tripIntensityOptions.map((option) => (
-                      <option key={option.id} value={option.id}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-              </div>
+              </fieldset>
 
               <div className="flex flex-wrap gap-3">
                 <FormSubmitButton pendingLabel="Building shortlist...">
                   See my shortlist
                 </FormSubmitButton>
-                <Link href="/plan" className={buttonVariants({ variant: "secondary" })}>
-                  Skip and use defaults
+                <Link href="/plan" className={buttonVariants({ variant: "ghost" })}>
+                  Skip setup for now
                 </Link>
               </div>
             </form>
@@ -220,11 +152,11 @@ export default async function OnboardingPage() {
 
             <p>
               The job of onboarding is not to trap the user in a questionnaire. It should only set
-              the minimum preferences needed to make the first shortlist feel accurate.
+              origin, drive tolerance, group type, and activity bias.
             </p>
             <p>
-              This form feeds straight into the ranked plan shortlist. If you are signed in, the
-              core defaults also become your saved profile baseline.
+              This form feeds straight into the ranked shortlist. Trip length, timing, trip format,
+              and lodging are better handled in `/plan`, where you can see their effect immediately.
             </p>
 
             <div className="rounded-[24px] border border-white/40 bg-white/55 p-5">
@@ -232,8 +164,8 @@ export default async function OnboardingPage() {
               <div className="mt-3 space-y-3">
                 <p>1. Submit this brief.</p>
                 <p>2. Review the shortlist in `/plan`.</p>
-                <p>3. Open the option you actually want to inspect.</p>
-                <p>4. Save it only if it still looks right after the detail page.</p>
+                <p>3. Add trip format, date, and lodging details there.</p>
+                <p>4. Open the option you actually want to inspect.</p>
               </div>
             </div>
 
@@ -255,14 +187,21 @@ export default async function OnboardingPage() {
 
 function Field({
   label,
+  htmlFor,
   children,
 }: Readonly<{
   label: string;
+  htmlFor: string;
   children: React.ReactNode;
 }>) {
   return (
     <div className="space-y-2">
-      <p className="text-sm font-semibold uppercase tracking-[0.14em] text-muted">{label}</p>
+      <label
+        htmlFor={htmlFor}
+        className="block text-sm font-semibold uppercase tracking-[0.14em] text-muted"
+      >
+        {label}
+      </label>
       {children}
     </div>
   );

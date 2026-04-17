@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DestinationHeroImage } from "@/components/destinations/destination-hero-image";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -19,7 +20,7 @@ export default async function ExplorePage() {
       <SectionHeading
         eyebrow="Explore"
         title="Browse the current California shortlist"
-        description="The full map can come later. For MVP, this page keeps exploration lightweight and grounded in decision-quality summaries."
+        description="This page now adds visual covers and map-aware browsing, while still staying grounded in decision-quality summaries instead of generic travel discovery."
       />
 
       <div className="flex flex-wrap gap-2">
@@ -40,6 +41,12 @@ export default async function ExplorePage() {
           return (
             <Card key={destination.slug}>
               <CardHeader className="space-y-4">
+                <DestinationHeroImage
+                  slug={destination.slug}
+                  name={destination.name}
+                  region={destination.region}
+                  summary={destination.summary}
+                />
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="eyebrow">{destination.region}</p>

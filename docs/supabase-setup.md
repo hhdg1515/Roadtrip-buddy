@@ -64,6 +64,8 @@ To populate real weather and active alerts, fill these optional vars in `.env.lo
 - `NPS_API_KEY` if you want Yosemite / Death Valley park alerts
 - `CRON_SECRET` if you want to trigger sync through HTTP
 
+CalTrans lane-closure sync now runs as part of `conditions:alerts` and `conditions:sync`. It does not require an API key.
+
 Local refresh commands:
 
 ```bash

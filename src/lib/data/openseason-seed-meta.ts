@@ -1,6 +1,13 @@
 type SeedMetaEntry = {
   destinationType: string;
   npsParkCode?: string;
+  caltransWatch?: {
+    districts: number[];
+    routes?: string[];
+    counties?: string[];
+    maxDistanceMiles?: number;
+    corridorHints?: string[];
+  };
   latitude: number;
   longitude: number;
   bestMonths: number[];
@@ -17,6 +24,13 @@ type SeedMetaEntry = {
 export const destinationSeedMeta: Record<string, SeedMetaEntry> = {
   "big-sur-carmel": {
     destinationType: "coastal-region",
+    caltransWatch: {
+      districts: [5],
+      routes: ["SR-1"],
+      counties: ["Monterey", "San Luis Obispo"],
+      corridorHints: ["Carmel", "Big Sur", "Monterey"],
+      maxDistanceMiles: 45,
+    },
     latitude: 36.2704,
     longitude: -121.8081,
     bestMonths: [3, 4, 5, 6, 9, 10],
@@ -32,6 +46,13 @@ export const destinationSeedMeta: Record<string, SeedMetaEntry> = {
   "point-reyes": {
     destinationType: "national-seashore",
     npsParkCode: "pore",
+    caltransWatch: {
+      districts: [4],
+      routes: ["SR-1", "US-101"],
+      counties: ["Marin"],
+      corridorHints: ["Point Reyes", "Olema", "Inverness"],
+      maxDistanceMiles: 45,
+    },
     latitude: 38.0409,
     longitude: -122.8602,
     bestMonths: [3, 4, 5, 9, 10],
@@ -46,6 +67,13 @@ export const destinationSeedMeta: Record<string, SeedMetaEntry> = {
   },
   "sonoma-coast": {
     destinationType: "coastal-region",
+    caltransWatch: {
+      districts: [4],
+      routes: ["SR-1", "US-101"],
+      counties: ["Sonoma"],
+      corridorHints: ["Jenner", "Bodega", "Bodega Bay"],
+      maxDistanceMiles: 45,
+    },
     latitude: 38.4675,
     longitude: -123.1279,
     bestMonths: [3, 4, 5, 6, 9, 10],
@@ -61,6 +89,13 @@ export const destinationSeedMeta: Record<string, SeedMetaEntry> = {
   yosemite: {
     destinationType: "national-park",
     npsParkCode: "yose",
+    caltransWatch: {
+      districts: [6, 10],
+      routes: ["SR-120", "SR-140", "SR-41"],
+      counties: ["Mariposa", "Tuolumne", "Madera"],
+      corridorHints: ["Yosemite", "El Portal", "Mariposa"],
+      maxDistanceMiles: 70,
+    },
     latitude: 37.7459,
     longitude: -119.5332,
     bestMonths: [4, 5, 6, 9, 10],
@@ -76,6 +111,13 @@ export const destinationSeedMeta: Record<string, SeedMetaEntry> = {
   "sequoia-kings": {
     destinationType: "national-park",
     npsParkCode: "seki",
+    caltransWatch: {
+      districts: [6],
+      routes: ["SR-198", "SR-180"],
+      counties: ["Tulare", "Fresno"],
+      corridorHints: ["Three Rivers", "Grant Grove", "Sequoia"],
+      maxDistanceMiles: 70,
+    },
     latitude: 36.5644,
     longitude: -118.7738,
     bestMonths: [5, 6, 7, 8, 9, 10],
@@ -90,6 +132,13 @@ export const destinationSeedMeta: Record<string, SeedMetaEntry> = {
   },
   tahoe: {
     destinationType: "mountain-basin",
+    caltransWatch: {
+      districts: [2, 3],
+      routes: ["I-80", "US-50", "SR-89", "SR-28"],
+      counties: ["El Dorado", "Placer", "Nevada"],
+      corridorHints: ["Tahoe", "Truckee", "South Lake"],
+      maxDistanceMiles: 50,
+    },
     latitude: 39.0968,
     longitude: -120.0324,
     bestMonths: [1, 2, 3, 7, 8, 9, 10],
@@ -104,6 +153,13 @@ export const destinationSeedMeta: Record<string, SeedMetaEntry> = {
   },
   mammoth: {
     destinationType: "mountain-town",
+    caltransWatch: {
+      districts: [9],
+      routes: ["US-395", "SR-203"],
+      counties: ["Mono", "Inyo"],
+      corridorHints: ["Mammoth", "June Lake", "Bishop"],
+      maxDistanceMiles: 55,
+    },
     latitude: 37.6485,
     longitude: -118.9721,
     bestMonths: [1, 2, 3, 7, 8, 9, 10],
@@ -118,6 +174,13 @@ export const destinationSeedMeta: Record<string, SeedMetaEntry> = {
   },
   "big-bear": {
     destinationType: "mountain-lake",
+    caltransWatch: {
+      districts: [8],
+      routes: ["SR-18", "SR-38", "SR-330"],
+      counties: ["San Bernardino"],
+      corridorHints: ["Big Bear", "Running Springs"],
+      maxDistanceMiles: 45,
+    },
     latitude: 34.243,
     longitude: -116.9114,
     bestMonths: [1, 2, 3, 6, 7, 8, 9, 10],
@@ -132,6 +195,13 @@ export const destinationSeedMeta: Record<string, SeedMetaEntry> = {
   },
   "angeles-crest": {
     destinationType: "mountain-corridor",
+    caltransWatch: {
+      districts: [7],
+      routes: ["SR-2", "SR-39"],
+      counties: ["Los Angeles"],
+      corridorHints: ["Angeles Crest", "Wrightwood", "Mt Baldy", "La Canada"],
+      maxDistanceMiles: 40,
+    },
     latitude: 34.3428,
     longitude: -118.1134,
     bestMonths: [5, 6, 7, 8, 9, 10, 11],
@@ -146,6 +216,13 @@ export const destinationSeedMeta: Record<string, SeedMetaEntry> = {
   },
   "shaver-huntington": {
     destinationType: "forest-lake",
+    caltransWatch: {
+      districts: [6],
+      routes: ["SR-168"],
+      counties: ["Fresno"],
+      corridorHints: ["Shaver", "Huntington"],
+      maxDistanceMiles: 50,
+    },
     latitude: 37.1512,
     longitude: -119.2874,
     bestMonths: [6, 7, 8, 9, 10],
@@ -160,6 +237,13 @@ export const destinationSeedMeta: Record<string, SeedMetaEntry> = {
   },
   "mount-shasta": {
     destinationType: "volcanic-town",
+    caltransWatch: {
+      districts: [2],
+      routes: ["I-5", "SR-89"],
+      counties: ["Siskiyou"],
+      corridorHints: ["Mount Shasta", "McCloud", "Castle Crags"],
+      maxDistanceMiles: 50,
+    },
     latitude: 41.3099,
     longitude: -122.3106,
     bestMonths: [6, 7, 8, 9, 10],
@@ -175,6 +259,13 @@ export const destinationSeedMeta: Record<string, SeedMetaEntry> = {
   "lassen": {
     destinationType: "national-park",
     npsParkCode: "lavo",
+    caltransWatch: {
+      districts: [2],
+      routes: ["SR-89", "SR-36"],
+      counties: ["Shasta", "Tehama", "Lassen", "Plumas"],
+      corridorHints: ["Lassen", "Mineral", "Chester"],
+      maxDistanceMiles: 75,
+    },
     latitude: 40.4977,
     longitude: -121.4207,
     bestMonths: [7, 8, 9, 10],
@@ -190,6 +281,13 @@ export const destinationSeedMeta: Record<string, SeedMetaEntry> = {
   "redwoods": {
     destinationType: "national-park",
     npsParkCode: "redw",
+    caltransWatch: {
+      districts: [1],
+      routes: ["US-101", "US-199"],
+      counties: ["Humboldt", "Del Norte"],
+      corridorHints: ["Prairie Creek", "Trinidad", "Klamath"],
+      maxDistanceMiles: 55,
+    },
     latitude: 41.2132,
     longitude: -124.0046,
     bestMonths: [4, 5, 6, 7, 8, 9, 10],
@@ -204,6 +302,13 @@ export const destinationSeedMeta: Record<string, SeedMetaEntry> = {
   },
   "klamath": {
     destinationType: "forest-cluster",
+    caltransWatch: {
+      districts: [1, 2],
+      routes: ["I-5", "SR-3", "SR-96"],
+      counties: ["Siskiyou"],
+      corridorHints: ["Etna", "Scott Valley", "Yreka"],
+      maxDistanceMiles: 75,
+    },
     latitude: 41.456,
     longitude: -122.8947,
     bestMonths: [6, 7, 8, 9, 10],
@@ -219,6 +324,13 @@ export const destinationSeedMeta: Record<string, SeedMetaEntry> = {
   "channel-islands": {
     destinationType: "island-park",
     npsParkCode: "chis",
+    caltransWatch: {
+      districts: [7],
+      routes: ["US-101", "SR-126"],
+      counties: ["Ventura"],
+      corridorHints: ["Ventura", "Oxnard"],
+      maxDistanceMiles: 40,
+    },
     latitude: 34.015,
     longitude: -119.6856,
     bestMonths: [3, 4, 5, 9, 10],
@@ -234,6 +346,13 @@ export const destinationSeedMeta: Record<string, SeedMetaEntry> = {
   "point-loma-cabrillo": {
     destinationType: "coastal-monument",
     npsParkCode: "cabr",
+    caltransWatch: {
+      districts: [11],
+      routes: ["I-5", "SR-75", "SR-163"],
+      counties: ["San Diego"],
+      corridorHints: ["Point Loma", "San Diego"],
+      maxDistanceMiles: 25,
+    },
     latitude: 32.6722,
     longitude: -117.2426,
     bestMonths: [3, 4, 5, 10, 11],
@@ -249,6 +368,13 @@ export const destinationSeedMeta: Record<string, SeedMetaEntry> = {
   "joshua-tree": {
     destinationType: "desert-park",
     npsParkCode: "jotr",
+    caltransWatch: {
+      districts: [8],
+      routes: ["I-10", "SR-62"],
+      counties: ["Riverside", "San Bernardino"],
+      corridorHints: ["Joshua Tree", "Yucca Valley", "Twentynine Palms"],
+      maxDistanceMiles: 60,
+    },
     latitude: 33.8734,
     longitude: -115.901,
     bestMonths: [10, 11, 12, 1, 2, 3, 4],
@@ -264,6 +390,13 @@ export const destinationSeedMeta: Record<string, SeedMetaEntry> = {
   "death-valley": {
     destinationType: "desert-park",
     npsParkCode: "deva",
+    caltransWatch: {
+      districts: [8, 9],
+      routes: ["SR-190", "SR-178", "SR-127", "SR-136"],
+      counties: ["Inyo", "San Bernardino"],
+      corridorHints: ["Death Valley", "Furnace Creek", "Panamint"],
+      maxDistanceMiles: 85,
+    },
     latitude: 36.5054,
     longitude: -117.0794,
     bestMonths: [11, 12, 1, 2, 3],
@@ -278,6 +411,13 @@ export const destinationSeedMeta: Record<string, SeedMetaEntry> = {
   },
   "anza-borrego": {
     destinationType: "desert-park",
+    caltransWatch: {
+      districts: [11],
+      routes: ["SR-78", "SR-79", "SR-86"],
+      counties: ["San Diego", "Imperial"],
+      corridorHints: ["Borrego Springs", "Julian", "Anza-Borrego"],
+      maxDistanceMiles: 65,
+    },
     latitude: 33.2559,
     longitude: -116.375,
     bestMonths: [11, 12, 1, 2, 3, 4],

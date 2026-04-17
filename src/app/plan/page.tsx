@@ -77,6 +77,21 @@ export default async function PlanPage({ searchParams }: PageProps) {
         </Card>
       ) : null}
 
+      {status === "onboarding-session-only" ? (
+        <Card>
+          <CardBody className="pt-6 text-sm leading-6">
+            <div className="flex flex-wrap gap-2">
+              <Badge tone="warm">Session-only brief</Badge>
+            </div>
+            <p className="mt-3">
+              Your onboarding choices are active in this shortlist now, but they were not saved to
+              a profile because you are not signed in. Continue planning here, or sign in later if
+              you want these defaults to persist.
+            </p>
+          </CardBody>
+        </Card>
+      ) : null}
+
       {planningState.usedProfileDefaults && user ? (
         <Card>
           <CardBody className="pt-6 text-sm leading-6">
@@ -101,8 +116,9 @@ export default async function PlanPage({ searchParams }: PageProps) {
           <CardBody className="space-y-6">
             <form action="/plan" className="space-y-6">
               <div className="grid gap-5 md:grid-cols-2">
-                <Field label="Origin">
+                <Field label="Origin" htmlFor="plan-origin">
                   <select
+                    id="plan-origin"
                     name="origin"
                     defaultValue={planningState.origin}
                     className="h-12 w-full rounded-[18px] border border-line bg-white/85 px-4 text-sm text-foreground outline-none transition focus:border-ocean/35 focus:ring-2 focus:ring-ocean/18"
@@ -115,8 +131,9 @@ export default async function PlanPage({ searchParams }: PageProps) {
                   </select>
                 </Field>
 
-                <Field label="Trip length">
+                <Field label="Trip length" htmlFor="plan-trip-length">
                   <select
+                    id="plan-trip-length"
                     name="tripLength"
                     defaultValue={planningState.tripLength}
                     className="h-12 w-full rounded-[18px] border border-line bg-white/85 px-4 text-sm text-foreground outline-none transition focus:border-ocean/35 focus:ring-2 focus:ring-ocean/18"
@@ -129,8 +146,9 @@ export default async function PlanPage({ searchParams }: PageProps) {
                   </select>
                 </Field>
 
-                <Field label="Start date">
+                <Field label="Start date" htmlFor="plan-start-date">
                   <input
+                    id="plan-start-date"
                     type="date"
                     name="startDate"
                     defaultValue={planningState.startDate ?? ""}
@@ -138,8 +156,9 @@ export default async function PlanPage({ searchParams }: PageProps) {
                   />
                 </Field>
 
-                <Field label="Driving tolerance">
+                <Field label="Driving tolerance" htmlFor="plan-driving-tolerance">
                   <select
+                    id="plan-driving-tolerance"
                     name="drivingTolerance"
                     defaultValue={planningState.drivingTolerance}
                     className="h-12 w-full rounded-[18px] border border-line bg-white/85 px-4 text-sm text-foreground outline-none transition focus:border-ocean/35 focus:ring-2 focus:ring-ocean/18"
@@ -152,8 +171,9 @@ export default async function PlanPage({ searchParams }: PageProps) {
                   </select>
                 </Field>
 
-                <Field label="Group style">
+                <Field label="Group style" htmlFor="plan-group-profile">
                   <select
+                    id="plan-group-profile"
                     name="groupProfile"
                     defaultValue={planningState.groupProfile}
                     className="h-12 w-full rounded-[18px] border border-line bg-white/85 px-4 text-sm text-foreground outline-none transition focus:border-ocean/35 focus:ring-2 focus:ring-ocean/18"
@@ -166,8 +186,9 @@ export default async function PlanPage({ searchParams }: PageProps) {
                   </select>
                 </Field>
 
-                <Field label="Trip format">
+                <Field label="Trip format" htmlFor="plan-trip-format">
                   <select
+                    id="plan-trip-format"
                     name="tripFormat"
                     defaultValue={planningState.tripFormat}
                     className="h-12 w-full rounded-[18px] border border-line bg-white/85 px-4 text-sm text-foreground outline-none transition focus:border-ocean/35 focus:ring-2 focus:ring-ocean/18"
@@ -180,8 +201,9 @@ export default async function PlanPage({ searchParams }: PageProps) {
                   </select>
                 </Field>
 
-                <Field label="Day intensity">
+                <Field label="Day intensity" htmlFor="plan-trip-intensity">
                   <select
+                    id="plan-trip-intensity"
                     name="tripIntensity"
                     defaultValue={planningState.tripIntensity}
                     className="h-12 w-full rounded-[18px] border border-line bg-white/85 px-4 text-sm text-foreground outline-none transition focus:border-ocean/35 focus:ring-2 focus:ring-ocean/18"
@@ -194,8 +216,9 @@ export default async function PlanPage({ searchParams }: PageProps) {
                   </select>
                 </Field>
 
-                <Field label="Lodging base">
+                <Field label="Lodging base" htmlFor="plan-lodging-style">
                   <select
+                    id="plan-lodging-style"
                     name="lodgingStyle"
                     defaultValue={planningState.lodgingStyle}
                     className="h-12 w-full rounded-[18px] border border-line bg-white/85 px-4 text-sm text-foreground outline-none transition focus:border-ocean/35 focus:ring-2 focus:ring-ocean/18"
@@ -209,10 +232,10 @@ export default async function PlanPage({ searchParams }: PageProps) {
                 </Field>
               </div>
 
-              <div className="space-y-3">
-                <p className="text-sm font-semibold uppercase tracking-[0.14em] text-muted">
+              <fieldset className="space-y-3">
+                <legend className="text-sm font-semibold uppercase tracking-[0.14em] text-muted">
                   Interests
-                </p>
+                </legend>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <label className="flex items-center gap-3 rounded-[18px] border border-white/50 bg-white/70 px-4 py-3 text-sm text-foreground">
                     <input
@@ -252,7 +275,7 @@ export default async function PlanPage({ searchParams }: PageProps) {
                     </label>
                   ))}
                 </div>
-              </div>
+              </fieldset>
 
               <button type="submit" className={buttonVariants({ variant: "primary" })}>
                 Update shortlist
@@ -360,14 +383,21 @@ export default async function PlanPage({ searchParams }: PageProps) {
 
 function Field({
   label,
+  htmlFor,
   children,
 }: Readonly<{
   label: string;
+  htmlFor: string;
   children: React.ReactNode;
 }>) {
   return (
     <div className="space-y-2">
-      <p className="text-sm font-semibold uppercase tracking-[0.14em] text-muted">{label}</p>
+      <label
+        htmlFor={htmlFor}
+        className="block text-sm font-semibold uppercase tracking-[0.14em] text-muted"
+      >
+        {label}
+      </label>
       {children}
     </div>
   );

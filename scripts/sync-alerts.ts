@@ -9,6 +9,7 @@ syncAlerts()
     console.log(`alerts inserted: ${result.synced}`);
     console.log(`nws alerts: ${result.nwsCount}`);
     console.log(`nps alerts: ${result.npsCount}`);
+    console.log(`caltrans alerts: ${result.caltransCount}`);
   })
   .catch((error) => {
     console.error("Alert sync failed.");

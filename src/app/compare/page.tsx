@@ -187,7 +187,7 @@ export default async function ComparePage({ searchParams }: PageProps) {
                         <p className="text-sm leading-6 text-foreground">{primaryAlert.title}</p>
                       </div>
                     ) : (
-                      <p className="text-sm leading-6 text-muted">No active tracked alerts right now.</p>
+                      <p className="text-sm leading-6 text-muted">No active weather, park, or route alerts right now.</p>
                     )}
                     {destination.updatedAt ? (
                       <p className="text-xs text-muted">

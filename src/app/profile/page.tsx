@@ -6,6 +6,7 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { Textarea } from "@/components/ui/textarea";
 import { getSavedTripSummaries, getUserPreferences } from "@/lib/account";
 import { formatUpdatedAt } from "@/lib/live-conditions";
+import { sanitizeNextPath } from "@/lib/safe-next-path";
 import {
   requestMagicLinkAction,
   savePreferencesAction,
@@ -285,10 +286,6 @@ function StatusCard({
 
 function getFirstValue(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
-}
-
-function sanitizeNextPath(value: string | undefined) {
-  return value?.startsWith("/") ? value : "/profile";
 }
 
 function getProfileNotice(status: string | undefined) {
