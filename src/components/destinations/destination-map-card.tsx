@@ -41,7 +41,7 @@ export function DestinationMapCard({
         <h2 className="text-lg font-semibold">Location and access</h2>
       </CardHeader>
       <CardBody className="space-y-4">
-        <div className="overflow-hidden rounded-md border border-line bg-muted-soft">
+        <div className="overflow-hidden rounded-md bg-muted-soft">
           <iframe
             title={`${destination.name} map`}
             src={presentation.mapEmbedUrl}
@@ -76,7 +76,7 @@ export function DestinationMapCard({
 
         <div className="grid gap-2 text-sm sm:grid-cols-2">
           {driveTimes.map((item) => (
-            <div key={item.origin} className="flex justify-between border-t border-line pt-2">
+            <div key={item.origin} className="flex justify-between pt-2">
               <span className="text-muted">{labelOrigin(item.origin)}</span>
               <span>{item.driveHours}h</span>
             </div>

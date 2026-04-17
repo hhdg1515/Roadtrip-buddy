@@ -5,12 +5,12 @@ type ButtonSize = "sm" | "md" | "lg";
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    "bg-foreground text-background hover:bg-foreground/90",
+    "bg-foreground text-white hover:bg-foreground/90 hover:text-white",
   secondary:
-    "border border-line bg-transparent text-foreground hover:bg-muted-soft",
+    "bg-muted-soft text-foreground hover:bg-muted-soft/60",
   ghost: "text-foreground hover:bg-muted-soft",
   surface:
-    "border border-white/25 bg-white/10 text-white hover:bg-white/18",
+    "bg-white/10 text-white hover:bg-white/18",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {

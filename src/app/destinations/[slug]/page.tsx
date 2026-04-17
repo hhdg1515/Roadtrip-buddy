@@ -195,7 +195,7 @@ export default async function DestinationPage({ params, searchParams }: PageProp
                 activeAlerts.map((alert) => (
                   <div
                     key={`${alert.source}-${alert.title}-${alert.effectiveDate ?? "now"}`}
-                    className="rounded-lg border border-line p-4"
+                    className="rounded-lg bg-muted-soft p-4"
                   >
                     <div className="flex flex-wrap items-center gap-1.5">
                       <Badge tone={getAlertTone(alert.severity)}>{alert.severity}</Badge>
@@ -234,7 +234,7 @@ export default async function DestinationPage({ params, searchParams }: PageProp
             {destination.activities.map((activity) => (
               <div
                 key={activity.name}
-                className="rounded-lg border border-line p-4"
+                className="rounded-lg bg-muted-soft p-4"
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <h3 className="text-base font-semibold">{activity.name}</h3>
@@ -334,7 +334,7 @@ function DetailSection({
   return (
     <details
       open={defaultOpen}
-      className="group rounded-lg border border-line bg-card px-5 py-4"
+      className="group rounded-lg bg-card px-5 py-4"
     >
       <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
         <div>

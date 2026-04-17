@@ -13,10 +13,10 @@ function toneForScore(score: number): FitScoreTone {
 }
 
 const toneClasses: Record<FitScoreTone, string> = {
-  excellent: "border-pine/40 text-pine",
-  good: "border-ocean/35 text-ocean",
-  mixed: "border-sun/40 text-sun",
-  weak: "border-danger/35 text-danger",
+  excellent: "text-pine",
+  good: "text-ocean",
+  mixed: "text-sun",
+  weak: "text-danger",
 };
 
 const sizeClasses: Record<FitScoreBadgeSize, string> = {
@@ -39,10 +39,14 @@ export function FitScoreBadge({
   const tone = toneForScore(score);
   const label = labelTripFitScore(score);
 
+  if (tone === "good") {
+    return null;
+  }
+
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-md border bg-transparent font-medium",
+        "inline-flex items-center gap-1.5 rounded-md font-medium",
         toneClasses[tone],
         sizeClasses[size],
         className,

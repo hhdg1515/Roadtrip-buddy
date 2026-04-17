@@ -14,7 +14,7 @@ import { getPlanningState } from "@/lib/planning";
 import { completeOnboardingAction } from "@/app/onboarding/actions";
 
 const inputClass =
-  "h-10 w-full rounded-md border border-line bg-background px-3 text-sm text-foreground outline-none transition focus:border-ocean/50 focus:ring-2 focus:ring-ocean/20";
+  "h-10 w-full rounded-md bg-muted-soft px-3 text-sm text-foreground outline-none transition focus:ring-2 focus:ring-ocean/30";
 
 export default async function OnboardingPage() {
   const { user, preferences } = await getUserPreferences();

@@ -55,7 +55,7 @@ export default async function Home({
 
   return (
     <div className="space-y-12 py-8 sm:py-10">
-      <section className="space-y-6 border-b border-line pb-10">
+      <section className="space-y-6">
         <div className="grid gap-8 lg:grid-cols-[1.3fr_0.7fr] lg:items-start">
           <div className="space-y-5">
             <p className="text-xs text-muted">{currentWindowLabel}</p>
@@ -141,7 +141,7 @@ export default async function Home({
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-line text-left text-xs text-muted">
+                  <tr className="text-left text-xs text-muted">
                     <th className="py-2 pr-4 font-medium">Destination</th>
                     <th className="py-2 pr-4 font-medium">Fit</th>
                     <th className="py-2 pr-4 font-medium">Best reason</th>
@@ -150,7 +150,7 @@ export default async function Home({
                 </thead>
                 <tbody>
                   {comparisonSet.map((destination) => (
-                    <tr key={destination.slug} className="border-b border-line/60 last:border-0 align-top">
+                    <tr key={destination.slug} className="align-top">
                       <td className="py-3 pr-4">
                         <Link
                           href={`/destinations/${destination.slug}`}

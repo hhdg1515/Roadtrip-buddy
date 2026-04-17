@@ -72,11 +72,11 @@ export function ActivityChip({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-md border text-xs font-medium",
+        "inline-flex items-center rounded-md text-xs font-medium",
         size === "sm" ? "px-2 py-0.5" : "px-2.5 py-0.5",
         selected
-          ? "border-foreground bg-foreground text-background"
-          : "border-line bg-transparent text-foreground",
+          ? "bg-foreground text-white"
+          : "bg-muted-soft text-foreground",
         className,
       )}
       aria-pressed={selected}

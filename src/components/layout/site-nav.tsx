@@ -16,13 +16,10 @@ export function SiteNav() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-background/90 backdrop-blur">
+    <header className="sticky top-0 z-40 bg-background/90 backdrop-blur">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-10">
         <Link href="/" aria-label="OpenSeason home" className="flex items-center gap-2">
           <span className="text-lg font-semibold tracking-tight">OpenSeason</span>
-          <span className="hidden text-sm text-muted sm:inline">
-            · California road trips, ranked for now
-          </span>
         </Link>
 
         <nav aria-label="Primary" className="flex flex-wrap gap-1">
@@ -38,8 +35,8 @@ export function SiteNav() {
                 className={cn(
                   "inline-flex h-9 items-center justify-center rounded-md px-3 text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-foreground text-background"
-                    : "text-muted hover:bg-muted-soft hover:text-foreground",
+                    ? "text-ocean"
+                    : "text-muted hover:text-foreground",
                 )}
               >
                 {item.label}

@@ -168,7 +168,7 @@ function StatusNote({
   message: string;
 }>) {
   return (
-    <div className="flex items-center gap-3 rounded-md border border-line bg-card px-4 py-3 text-sm">
+    <div className="flex items-center gap-3 rounded-md bg-muted-soft px-4 py-3 text-sm">
       <Badge tone={tone}>{label}</Badge>
       <span className="text-muted">{message}</span>
     </div>

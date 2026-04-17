@@ -17,15 +17,15 @@ type RiskMeta = {
 };
 
 const riskMeta: Record<RiskKind, RiskMeta> = {
-  heat: { label: "Heat risk", tone: "border-sun/40 text-sun" },
-  snow: { label: "Snow risk", tone: "border-ocean/35 text-ocean" },
-  "road-closure": { label: "Road closure", tone: "border-danger/35 text-danger" },
-  "fire-smoke": { label: "Fire / smoke", tone: "border-danger/35 text-danger" },
-  crowding: { label: "Crowded", tone: "border-sun/40 text-sun" },
-  "remote-services": { label: "Remote services", tone: "border-line text-muted" },
-  wind: { label: "Wind", tone: "border-ocean/30 text-ocean" },
-  "shoulder-season": { label: "Shoulder season", tone: "border-line text-muted" },
-  generic: { label: "Note", tone: "border-line text-muted" },
+  heat: { label: "Heat risk", tone: "text-sun" },
+  snow: { label: "Snow risk", tone: "text-ocean" },
+  "road-closure": { label: "Road closure", tone: "text-danger" },
+  "fire-smoke": { label: "Fire / smoke", tone: "text-danger" },
+  crowding: { label: "Crowded", tone: "text-sun" },
+  "remote-services": { label: "Remote services", tone: "text-muted" },
+  wind: { label: "Wind", tone: "text-ocean" },
+  "shoulder-season": { label: "Shoulder season", tone: "text-muted" },
+  generic: { label: "Note", tone: "text-muted" },
 };
 
 export function inferRiskKind(raw: string): RiskKind {
@@ -57,7 +57,7 @@ export function RiskBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-md border bg-transparent px-2 py-0.5 text-xs font-medium",
+        "inline-flex items-center rounded-md px-1.5 text-xs font-medium",
         meta.tone,
         className,
       )}

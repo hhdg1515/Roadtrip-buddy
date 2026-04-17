@@ -27,12 +27,7 @@ export function DestinationCard({
   return (
     <Card className="flex h-full flex-col">
       <CardHeader className="space-y-3">
-        <DestinationHeroImage
-          slug={destination.slug}
-          name={destination.name}
-          region={destination.region}
-          summary={destination.summary}
-        />
+        <DestinationHeroImage slug={destination.slug} name={destination.name} />
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 space-y-1">
             <p className="text-xs text-muted">{destination.region}</p>
@@ -61,7 +56,7 @@ export function DestinationCard({
 
       <CardBody className="flex flex-1 flex-col gap-4">
         {weatherMetrics.length > 0 || primaryAlert ? (
-          <div className="space-y-1.5 border-t border-line pt-3 text-sm text-muted">
+          <div className="space-y-1 text-sm text-muted">
             {weatherMetrics.length > 0 ? (
               <p className="text-foreground">{weatherMetrics.join(" · ")}</p>
             ) : null}
@@ -74,27 +69,19 @@ export function DestinationCard({
           </div>
         ) : null}
 
-        <div className="space-y-2.5 text-sm leading-6">
+        <div className="space-y-2 text-sm leading-6">
           <p className="text-foreground">
-            <span className="text-xs uppercase tracking-wider text-muted">Why now · </span>
+            <span className="text-xs text-muted">Why now · </span>
             {destination.whyNow}
           </p>
           <p className="text-muted">
-            <span className="text-xs uppercase tracking-wider">Watch out · </span>
+            <span className="text-xs">Watch out · </span>
             {destination.mainWarning}
           </p>
         </div>
 
-        {decision.level !== "inform" ? (
-          <p
-            className={
-              decision.level === "block"
-                ? "text-sm text-danger"
-                : "text-sm text-sun"
-            }
-          >
-            {decision.headline}
-          </p>
+        {decision.level === "block" ? (
+          <p className="text-sm text-danger">{decision.headline}</p>
         ) : null}
 
         <div className="mt-auto flex flex-wrap gap-2 pt-2">

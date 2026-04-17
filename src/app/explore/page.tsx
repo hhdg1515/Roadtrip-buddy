@@ -307,8 +307,8 @@ function FilterGroup({ legend, groupId, options, selectedIds }: FilterGroupProps
               htmlFor={inputId}
               className={
                 isSelected
-                  ? "cursor-pointer rounded-md border border-foreground bg-foreground px-2.5 py-1 text-xs font-medium text-background"
-                  : "cursor-pointer rounded-md border border-line bg-transparent px-2.5 py-1 text-xs font-medium text-foreground hover:border-foreground/50"
+                  ? "cursor-pointer rounded-md bg-foreground px-2.5 py-1 text-xs font-medium text-white"
+                  : "cursor-pointer rounded-md bg-muted-soft px-2.5 py-1 text-xs font-medium text-foreground hover:bg-muted-soft/70"
               }
             >
               <input

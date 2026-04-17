@@ -78,10 +78,10 @@ export default async function ComparePage({ searchParams }: PageProps) {
         </CardBody>
       </Card>
 
-      <section className="overflow-x-auto rounded-lg border border-line bg-card">
+      <section className="overflow-x-auto rounded-lg bg-card">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-line text-left text-xs text-muted">
+            <tr className="text-left text-xs text-muted">
               <th className="whitespace-nowrap p-3 font-medium">Destination</th>
               <th className="whitespace-nowrap p-3 font-medium">Fit</th>
               <th className="whitespace-nowrap p-3 font-medium">Drive</th>
@@ -99,7 +99,7 @@ export default async function ComparePage({ searchParams }: PageProps) {
               const decision = getDestinationDecisionStatus(destination);
 
               return (
-                <tr key={destination.slug} className="border-b border-line/60 align-top last:border-0">
+                <tr key={destination.slug} className="align-top">
                   <td className="p-3">
                     <Link href={`/destinations/${destination.slug}`} className="font-semibold hover:text-ocean">
                       {destination.name}

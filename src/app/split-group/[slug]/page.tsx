@@ -39,7 +39,7 @@ export default async function SplitGroupPlanPage({ params, searchParams }: PageP
 
   return (
     <div className="space-y-10 py-8">
-      <section className="grid gap-6 border-b border-line pb-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
+      <section className="grid gap-6 pb-2 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
         <div className="space-y-3">
           <p className="text-xs text-muted">Split group · {destination.region}</p>
           <h1 className="display-title text-4xl font-semibold leading-[1.05] sm:text-5xl">
@@ -180,7 +180,7 @@ function TrackCard({
       </CardHeader>
       <CardBody className="space-y-3">
         {items.map((item) => (
-          <div key={item.name} className="border-t border-line pt-3 first:border-0 first:pt-0">
+          <div key={item.name} className="pt-3 first:pt-0">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h3 className="font-medium">{item.name}</h3>

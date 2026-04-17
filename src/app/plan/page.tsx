@@ -199,7 +199,7 @@ export default async function PlanPage({ searchParams }: PageProps) {
               </button>
             </form>
 
-            <p className="border-t border-line pt-3 text-sm italic leading-6 text-muted">
+            <p className="pt-2 text-sm italic leading-6 text-muted">
               “{describePlanningState(planningState)}”
             </p>
           </CardBody>
@@ -228,7 +228,7 @@ export default async function PlanPage({ searchParams }: PageProps) {
                 <Link
                   key={destination.slug}
                   href={`/plans/${destination.slug}?${queryString}`}
-                  className="block rounded-lg border border-line p-4 transition-colors hover:border-ocean/40 hover:bg-muted-soft/40"
+                  className="block rounded-lg bg-muted-soft/50 p-4 transition-colors hover:bg-muted-soft"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0 space-y-1">
@@ -262,7 +262,7 @@ export default async function PlanPage({ searchParams }: PageProps) {
 }
 
 const inputClass =
-  "h-10 w-full rounded-md border border-line bg-background px-3 text-sm text-foreground outline-none transition focus:border-ocean/50 focus:ring-2 focus:ring-ocean/20";
+  "h-10 w-full rounded-md bg-muted-soft px-3 text-sm text-foreground outline-none transition focus:ring-2 focus:ring-ocean/30";
 
 function Select({
   id,
@@ -328,7 +328,7 @@ function StatusNote({
   message: string;
 }>) {
   return (
-    <div className="flex items-center gap-3 rounded-md border border-line bg-card px-4 py-3 text-sm">
+    <div className="flex items-center gap-3 rounded-md bg-muted-soft px-4 py-3 text-sm">
       <Badge tone={tone}>{label}</Badge>
       <span className="text-muted">{message}</span>
     </div>

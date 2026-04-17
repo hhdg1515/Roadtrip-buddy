@@ -21,11 +21,8 @@ export function PlanBCard({
   return (
     <div
       className={cn(
-        "rounded-lg border-l-2 p-4",
-        isDark
-          ? "border-l-white border-white/15 bg-white/5 text-white"
-          : "border-l-sun border-line bg-card text-foreground",
-        "border",
+        "rounded-lg p-4",
+        isDark ? "bg-white/5 text-white" : "bg-muted-soft text-foreground",
         className,
       )}
       role="group"

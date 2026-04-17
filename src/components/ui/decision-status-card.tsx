@@ -4,14 +4,12 @@ import { cn } from "@/lib/utils";
 
 function toneClasses(level: DecisionStatus["level"], variant: "light" | "dark") {
   if (variant === "dark") {
-    if (level === "block") return "border-danger/40 bg-transparent text-white";
-    if (level === "warn") return "border-sun/40 bg-transparent text-white";
-    return "border-white/20 bg-transparent text-white";
+    return "bg-white/5 text-white";
   }
 
-  if (level === "block") return "border-danger/30 bg-transparent text-foreground";
-  if (level === "warn") return "border-sun/35 bg-transparent text-foreground";
-  return "border-line bg-transparent text-foreground";
+  if (level === "block") return "bg-danger/8 text-foreground";
+  if (level === "warn") return "bg-sun/10 text-foreground";
+  return "bg-muted-soft text-foreground";
 }
 
 function badgeTone(level: DecisionStatus["level"]) {
@@ -50,7 +48,7 @@ export function DecisionStatusCard({
   return (
     <div
       className={cn(
-        "rounded-lg border p-4",
+        "rounded-lg p-4",
         toneClasses(decision.level, variant),
         className,
       )}

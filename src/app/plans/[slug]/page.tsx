@@ -147,7 +147,7 @@ export default async function PlanDetailPage({ params, searchParams }: PageProps
                 <TextRow label="Midday" value={day.midday} />
                 <TextRow label="Afternoon" value={day.afternoon} />
                 <TextRow label="Evening" value={day.evening} />
-                <p className="mt-2 border-t border-line pt-2 text-xs text-muted">{day.note}</p>
+                <p className="mt-2 text-xs text-muted">{day.note}</p>
               </CardBody>
             </Card>
           ))}
@@ -240,7 +240,7 @@ function StatusNote({
   message: string;
 }>) {
   return (
-    <div className="flex items-center gap-3 rounded-md border border-line bg-card px-4 py-3 text-sm">
+    <div className="flex items-center gap-3 rounded-md bg-muted-soft px-4 py-3 text-sm">
       <Badge tone={tone}>{label}</Badge>
       <span className="text-muted">{message}</span>
     </div>
