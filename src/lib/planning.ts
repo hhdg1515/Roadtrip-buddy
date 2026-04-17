@@ -7,6 +7,7 @@ import {
   type GroupProfile,
   type InterestKey,
   type Origin,
+  type RankingContext,
   type TripFormat,
   type TripIntensity,
   type TripLength,
@@ -93,6 +94,20 @@ export function getPlanningState(
       !getFirstValue(searchParams.lodgingStyle) &&
       !getFirstValue(searchParams.interestMode) &&
       !searchParams.interests,
+  };
+}
+
+export function rankingContextFromPlanning(
+  state: Omit<PlanningState, "usedProfileDefaults">,
+): RankingContext {
+  return {
+    drivingTolerance: state.drivingTolerance,
+    groupProfile: state.groupProfile,
+    tripFormat: state.tripFormat,
+    tripIntensity: state.tripIntensity,
+    lodgingStyle: state.lodgingStyle,
+    interests: state.interestMode === "open" ? [] : state.interests,
+    startDate: state.startDate,
   };
 }
 

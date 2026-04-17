@@ -10,6 +10,7 @@ import { FormSubmitButton } from "@/components/ui/form-submit-button";
 import { PlanBCard } from "@/components/ui/plan-b-card";
 import { RiskBadge } from "@/components/ui/risk-badge";
 import { getCurrentUser, getUserPreferences } from "@/lib/account";
+import { buildScoringContext } from "@/lib/data/openseason";
 import { getDestinationBySlugFromRepository } from "@/lib/data/repository";
 import { formatWeatherMetrics, getPrimaryAlert } from "@/lib/live-conditions";
 import {
@@ -21,8 +22,10 @@ import {
   labelLodgingStyle,
   labelPlanningDate,
   labelTripIntensity,
+  rankingContextFromPlanning,
   toPlanningQueryString,
 } from "@/lib/planning";
+import { calculateTripFitScore } from "@/lib/scoring/trip-fit";
 import { saveTripPlanAction } from "@/app/plans/actions";
 
 type PageProps = {
@@ -48,6 +51,14 @@ export default async function PlanDetailPage({ params, searchParams }: PageProps
   const saved = getFirstValue(resolvedSearchParams.saved);
   const status = getFirstValue(resolvedSearchParams.status);
   const planningState = getPlanningState(resolvedSearchParams, preferences);
+  const rankingContext = rankingContextFromPlanning(planningState);
+  const scoringContext = buildScoringContext(
+    destination,
+    planningState.origin,
+    planningState.tripLength,
+    rankingContext,
+  );
+  const contextualFitScore = calculateTripFitScore(destination.breakdown, scoringContext);
   const saveReturnTo = `/plans/${destination.slug}?${toPlanningQueryString(planningState)}`;
 
   return (
@@ -128,7 +139,7 @@ export default async function PlanDetailPage({ params, searchParams }: PageProps
           <CardBody className="space-y-4 text-sm leading-6">
             <div className="flex flex-wrap gap-2">
               {planningState.startDate ? <Badge>{labelPlanningDate(planningState.startDate)}</Badge> : null}
-              <FitScoreBadge score={destination.fitScore} />
+              <FitScoreBadge score={contextualFitScore} />
               <Badge tone="soft">{destination.bestActivity}</Badge>
               <Badge tone="warm">{labelDrivingTolerance(planningState.drivingTolerance)}</Badge>
               <Badge tone="soft">{labelGroupProfile(planningState.groupProfile)}</Badge>
