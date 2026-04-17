@@ -9,7 +9,8 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { FitScoreBadge } from "@/components/ui/fit-score-badge";
 import { PlanBCard } from "@/components/ui/plan-b-card";
 import { RiskBadge } from "@/components/ui/risk-badge";
-import { planningPreset } from "@/lib/data/openseason";
+import { getUserPreferences } from "@/lib/account";
+import { buildScoringContext } from "@/lib/data/openseason";
 import { getDestinationBySlugFromRepository } from "@/lib/data/repository";
 import {
   formatAlertDate,
@@ -18,18 +19,42 @@ import {
   getAlertTone,
   getPrimaryAlert,
 } from "@/lib/live-conditions";
+import {
+  getPlanningState,
+  labelOrigin,
+  rankingContextFromPlanning,
+  toPlanningQueryString,
+} from "@/lib/planning";
+import { calculateTripFitScore, labelTripFitScore } from "@/lib/scoring/trip-fit";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export default async function DestinationPage({ params }: PageProps) {
+export default async function DestinationPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
-  const destination = await getDestinationBySlugFromRepository(slug);
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const [{ preferences }, destination] = await Promise.all([
+    getUserPreferences(),
+    getDestinationBySlugFromRepository(slug),
+  ]);
 
   if (!destination) {
     notFound();
   }
+
+  const planningState = getPlanningState(resolvedSearchParams, preferences);
+  const rankingContext = rankingContextFromPlanning(planningState);
+  const scoringContext = buildScoringContext(
+    destination,
+    planningState.origin,
+    planningState.tripLength,
+    rankingContext,
+  );
+  const contextualFitScore = calculateTripFitScore(destination.breakdown, scoringContext);
+  const contextualFitLabel = labelTripFitScore(contextualFitScore);
+  const planQueryString = toPlanningQueryString(planningState);
 
   const scoreRows = [
     ["Seasonality", destination.breakdown.seasonality],
@@ -65,10 +90,10 @@ export default async function DestinationPage({ params }: PageProps) {
             <p className="max-w-3xl text-base leading-7 text-white/76">{destination.summary}</p>
 
             <div className="flex flex-wrap gap-2">
-              <FitScoreBadge score={destination.fitScore} className="bg-white/15 text-white" />
+              <FitScoreBadge score={contextualFitScore} className="bg-white/15 text-white" />
               <Badge className="bg-white/15 text-white">{destination.bestActivity}</Badge>
               <Badge className="bg-white/15 text-white">
-                {destination.driveHours[planningPreset.origin]}h from Bay Area
+                {destination.driveHours[planningState.origin]}h from {labelOrigin(planningState.origin)}
               </Badge>
               <Badge className="bg-white/15 text-white">{destination.seasonalWindow}</Badge>
             </div>
@@ -89,12 +114,16 @@ export default async function DestinationPage({ params }: PageProps) {
                     <h2 className="text-3xl font-semibold">{destination.bestActivity}</h2>
                     <p className="text-sm leading-6 text-white/80">{destination.whyNow}</p>
                   </div>
-                  <FitScoreBadge
-                    score={destination.fitScore}
-                    showScore={false}
-                    size="sm"
-                    className="bg-white/20 text-white"
-                  />
+                  <div className="text-right">
+                    <p className="text-4xl font-bold">{contextualFitScore}</p>
+                    <FitScoreBadge
+                      score={contextualFitScore}
+                      showScore={false}
+                      size="sm"
+                      className="mt-2 bg-white/20 text-white"
+                    />
+                    <p className="mt-1 text-xs text-white/68">{contextualFitLabel}</p>
+                  </div>
                 </div>
               </CardHeader>
               <CardBody className="space-y-4 text-sm text-white/82">
@@ -125,13 +154,13 @@ export default async function DestinationPage({ params }: PageProps) {
 
                 <div className="flex flex-wrap gap-3 pt-2">
                   <Link
-                    href={`/plans/${destination.slug}`}
+                    href={`/plans/${destination.slug}?${planQueryString}`}
                     className={buttonVariants({ variant: "primary" })}
                   >
                     Generate trip plan
                   </Link>
                   <Link
-                    href={`/split-group/${destination.slug}`}
+                    href={`/split-group/${destination.slug}?${planQueryString}`}
                     className={buttonVariants({ variant: "secondary" })}
                   >
                     Split group plan
