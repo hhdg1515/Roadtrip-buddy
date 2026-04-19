@@ -36,6 +36,30 @@ export async function fetchCaltransJson<T>(url: string): Promise<T> {
   });
 }
 
+export async function fetchArcgisJson<T>(url: string): Promise<T> {
+  return fetchJson<T>(url, {
+    headers: {
+      Accept: "application/json",
+    },
+  });
+}
+
+export async function fetchHtml(url: string): Promise<string> {
+  const response = await fetch(url, {
+    headers: {
+      Accept: "text/html,application/xhtml+xml",
+      "User-Agent": "Mozilla/5.0",
+    },
+    signal: AbortSignal.timeout(20_000),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Request failed: ${response.status} ${response.statusText} for ${url}`);
+  }
+
+  return response.text();
+}
+
 async function fetchJson<T>(url: string, options: FetchJsonOptions): Promise<T> {
   const response = await fetch(url, {
     headers: options.headers,

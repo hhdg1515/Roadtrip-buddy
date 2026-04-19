@@ -66,6 +66,12 @@ To populate real weather and active alerts, fill these optional vars in `.env.lo
 
 CalTrans lane-closure sync now runs as part of `conditions:alerts` and `conditions:sync`. It does not require an API key.
 
+WFIGS current wildfire incident sync also runs inside `conditions:alerts` and `conditions:sync`. The current implementation uses the public ArcGIS service and does not require an API key.
+
+USFS official forest alert pages are also checked for the forest-heavy destinations. The current implementation reads the public Forest Service alerts pages directly and does not require an API key.
+
+For the highest-value forest clusters, the sync now also reads public USFS current-conditions pages or road-status pages where those pages are structured enough to parse reliably. This also does not require an API key.
+
 Local refresh commands:
 
 ```bash

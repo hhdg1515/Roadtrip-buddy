@@ -8,7 +8,7 @@
     "start": "node ./node_modules/next/dist/bin/next start",
     "lint": "node ./node_modules/eslint/bin/eslint.js src scripts middleware.ts next.config.ts eslint.config.mjs",
     "typecheck": "node ./node_modules/typescript/bin/tsc --noEmit",
-    "test": "node --import tsx --test src/lib/scoring/trip-fit.test.ts",
+    "test": "node --import tsx --test src/lib/scoring/trip-fit.test.ts src/lib/decision-layer.test.ts scripts/lib/usfs-alerts.test.ts scripts/lib/usfs-conditions.test.ts",
     "supabase:check": "node --import tsx scripts/check-supabase.ts",
     "supabase:seed": "node --import tsx scripts/seed-supabase.ts",
     "conditions:weather": "node --import tsx scripts/sync-weather.ts",

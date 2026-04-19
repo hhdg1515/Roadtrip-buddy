@@ -16,6 +16,8 @@ async function main() {
   console.log(`weather snapshots updated: ${weather.synced}`);
   console.log(`alerts inserted: ${alerts.synced}`);
   console.log(`caltrans alerts: ${alerts.caltransCount}`);
+  console.log(`usfs alerts: ${alerts.usfsCount}`);
+  console.log(`wildfire alerts: ${alerts.wildfireCount}`);
   console.log(`destination snapshots refreshed: ${snapshots.refreshed}`);
 }
 

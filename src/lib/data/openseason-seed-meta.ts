@@ -8,6 +8,18 @@ type SeedMetaEntry = {
     maxDistanceMiles?: number;
     corridorHints?: string[];
   };
+  usfsWatch?: {
+    forestName: string;
+    alertsUrl: string;
+    corridorHints?: string[];
+    maxAlerts?: number;
+  };
+  usfsConditionsWatch?: {
+    forestName: string;
+    conditionsUrl: string;
+    corridorHints?: string[];
+    maxAlerts?: number;
+  };
   latitude: number;
   longitude: number;
   bestMonths: number[];
@@ -181,6 +193,18 @@ export const destinationSeedMeta: Record<string, SeedMetaEntry> = {
       corridorHints: ["Big Bear", "Running Springs"],
       maxDistanceMiles: 45,
     },
+    usfsWatch: {
+      forestName: "San Bernardino National Forest",
+      alertsUrl: "https://www.fs.usda.gov/r05/sanbernardino/alerts",
+      corridorHints: ["Big Bear", "Running Springs", "Snow Valley", "Barton Flats", "San Gorgonio"],
+      maxAlerts: 4,
+    },
+    usfsConditionsWatch: {
+      forestName: "San Bernardino National Forest",
+      conditionsUrl: "https://www.fs.usda.gov/r05/sanbernardino/conditions/roads",
+      corridorHints: ["Big Bear", "Bear", "Running Springs", "Snow Valley", "San Gorgonio", "Barton", "mountaintop"],
+      maxAlerts: 3,
+    },
     latitude: 34.243,
     longitude: -116.9114,
     bestMonths: [1, 2, 3, 6, 7, 8, 9, 10],
@@ -201,6 +225,12 @@ export const destinationSeedMeta: Record<string, SeedMetaEntry> = {
       counties: ["Los Angeles"],
       corridorHints: ["Angeles Crest", "Wrightwood", "Mt Baldy", "La Canada"],
       maxDistanceMiles: 40,
+    },
+    usfsWatch: {
+      forestName: "Angeles National Forest",
+      alertsUrl: "https://www.fs.usda.gov/r05/angeles/alerts",
+      corridorHints: ["Mt. Baldy", "Baldy", "Angeles Crest", "Wrightwood", "San Gabriel"],
+      maxAlerts: 4,
     },
     latitude: 34.3428,
     longitude: -118.1134,
@@ -223,6 +253,18 @@ export const destinationSeedMeta: Record<string, SeedMetaEntry> = {
       corridorHints: ["Shaver", "Huntington"],
       maxDistanceMiles: 50,
     },
+    usfsWatch: {
+      forestName: "Sierra National Forest",
+      alertsUrl: "https://www.fs.usda.gov/r05/sierra/alerts",
+      corridorHints: ["Shaver", "Huntington", "Kaiser", "Dinkey", "Prather"],
+      maxAlerts: 4,
+    },
+    usfsConditionsWatch: {
+      forestName: "Sierra National Forest",
+      conditionsUrl: "https://www.fs.usda.gov/r05/sierra/conditions",
+      corridorHints: ["Shaver", "Huntington", "Kaiser", "Dinkey", "Tamarack", "T2", "T5"],
+      maxAlerts: 3,
+    },
     latitude: 37.1512,
     longitude: -119.2874,
     bestMonths: [6, 7, 8, 9, 10],
@@ -243,6 +285,18 @@ export const destinationSeedMeta: Record<string, SeedMetaEntry> = {
       counties: ["Siskiyou"],
       corridorHints: ["Mount Shasta", "McCloud", "Castle Crags"],
       maxDistanceMiles: 50,
+    },
+    usfsWatch: {
+      forestName: "Shasta-Trinity National Forest",
+      alertsUrl: "https://www.fs.usda.gov/r05/shasta-trinity/alerts",
+      corridorHints: ["Shasta", "McCloud", "Castle Crags", "Trinity Alps"],
+      maxAlerts: 4,
+    },
+    usfsConditionsWatch: {
+      forestName: "Shasta-Trinity National Forest",
+      conditionsUrl: "https://www.fs.usda.gov/r05/shasta-trinity/conditions",
+      corridorHints: ["McCloud", "Shasta", "Castle", "Mud Creek", "Panther", "Bunny Flat", "Everitt"],
+      maxAlerts: 3,
     },
     latitude: 41.3099,
     longitude: -122.3106,
@@ -308,6 +362,12 @@ export const destinationSeedMeta: Record<string, SeedMetaEntry> = {
       counties: ["Siskiyou"],
       corridorHints: ["Etna", "Scott Valley", "Yreka"],
       maxDistanceMiles: 75,
+    },
+    usfsWatch: {
+      forestName: "Klamath National Forest",
+      alertsUrl: "https://www.fs.usda.gov/r05/klamath/alerts",
+      corridorHints: ["Etna", "Scott Valley", "Yreka", "Salmon", "Marble"],
+      maxAlerts: 4,
     },
     latitude: 41.456,
     longitude: -122.8947,

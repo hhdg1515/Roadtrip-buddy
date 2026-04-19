@@ -1,6 +1,12 @@
 import { createSupabaseAdminClient } from "./supabase-admin";
-import { fetchCaltransJson, fetchNpsJson, fetchNwsJson } from "./http";
+import { fetchArcgisJson, fetchCaltransJson, fetchHtml, fetchNpsJson, fetchNwsJson } from "./http";
 import { getNpsApiKey } from "./env";
+import { mapUsfsSeverity, parseUsfsAlertsPage, selectRelevantUsfsAlerts } from "./usfs-alerts";
+import {
+  mapUsfsConditionSeverity,
+  parseUsfsConditionsPage,
+  selectRelevantUsfsConditionLines,
+} from "./usfs-conditions";
 import { destinationSeedMeta } from "../../src/lib/data/openseason-seed-meta";
 import {
   destinations as seededDestinations,
@@ -12,6 +18,7 @@ import {
   labelTripFitScore,
   type ScoreBreakdown,
 } from "../../src/lib/scoring/trip-fit";
+import { getDecisionStatus } from "../../src/lib/decision-layer";
 
 type Relation<T> = T | T[] | null;
 
@@ -132,6 +139,46 @@ type CaltransClosure = NonNullable<
   NonNullable<CaltransLaneClosureResponse["data"]>[number]["lcs"]
 >;
 
+type ArcgisFeatureResponse<TAttributes> = {
+  features?: Array<{
+    attributes?: TAttributes;
+    geometry?: {
+      x?: number;
+      y?: number;
+    };
+  }>;
+};
+
+type WfigsIncidentAttributes = {
+  IncidentName?: string | null;
+  IncidentShortDescription?: string | null;
+  UniqueFireIdentifier?: string | null;
+  IrwinID?: string | null;
+  SourceGlobalID?: string | null;
+  POOCounty?: string | null;
+  POOState?: string | null;
+  PercentContained?: number | null;
+  IncidentSize?: number | null;
+  FireDiscoveryDateTime?: number | null;
+  ModifiedOnDateTime_dt?: number | null;
+  FireOutDateTime?: number | null;
+};
+
+type WfigsIncidentResponse = ArcgisFeatureResponse<WfigsIncidentAttributes>;
+
+type WfigsIncident = {
+  sourceId: string;
+  name: string;
+  description: string | null;
+  county: string | null;
+  percentContained: number | null;
+  sizeAcres: number | null;
+  discoveryDate: string | null;
+  modifiedDate: string | null;
+  latitude: number;
+  longitude: number;
+};
+
 type NwsPointsResponse = {
   properties: {
     forecastHourly: string;
@@ -202,6 +249,19 @@ function clamp(value: number, min: number, max: number) {
 function unique<T>(values: T[]) {
   return [...new Set(values)];
 }
+
+const californiaWildfireQueryUrl = (() => {
+  const query = new URLSearchParams({
+    where: "POOState = 'US-CA' AND IncidentTypeCategory = 'WF'",
+    outFields:
+      "IncidentName,IncidentShortDescription,UniqueFireIdentifier,IrwinID,SourceGlobalID,POOCounty,POOState,PercentContained,IncidentSize,FireDiscoveryDateTime,ModifiedOnDateTime_dt,FireOutDateTime",
+    returnGeometry: "true",
+    outSR: "4326",
+    f: "json",
+  });
+
+  return `https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/WFIGS_Incident_Locations_Current/FeatureServer/0/query?${query.toString()}`;
+})();
 
 function toBooleanFlag(value: string | null | undefined) {
   return value?.toLowerCase() === "true";
@@ -372,6 +432,198 @@ function inferCaltransSeverity(closure: CaltransClosure) {
   return "Minor";
 }
 
+function formatWildfireDistance(distanceMiles: number) {
+  return `${Math.round(distanceMiles)} miles`;
+}
+
+function formatWildfireAcres(acres: number | null) {
+  if (acres == null || acres <= 0) {
+    return null;
+  }
+
+  return `${Math.round(acres).toLocaleString()} acres`;
+}
+
+function wildfireRadiusMilesForDestination(destination: DestinationRow) {
+  const type = destination.destination_type.toLowerCase();
+
+  if (/\bisland|coast|seashore|monument\b/.test(type)) {
+    return 75;
+  }
+
+  if (/\bforest|mountain|park|volcanic|desert|lake\b/.test(type)) {
+    return 110;
+  }
+
+  return 90;
+}
+
+function inferWildfireSeverity(
+  distanceMiles: number,
+  acres: number | null,
+  percentContained: number | null,
+) {
+  let score = 0;
+
+  if (distanceMiles <= 15) {
+    score += 4;
+  } else if (distanceMiles <= 30) {
+    score += 3;
+  } else if (distanceMiles <= 50) {
+    score += 2;
+  } else if (distanceMiles <= 80) {
+    score += 1;
+  }
+
+  if ((acres ?? 0) >= 25_000) {
+    score += 3;
+  } else if ((acres ?? 0) >= 10_000) {
+    score += 2;
+  } else if ((acres ?? 0) >= 1_000) {
+    score += 1;
+  }
+
+  if (percentContained == null) {
+    if (distanceMiles <= 15 || (acres ?? 0) >= 1_000) {
+      score += 1;
+    }
+  } else if (percentContained < 20) {
+    score += 2;
+  } else if (percentContained < 60) {
+    score += 1;
+  }
+
+  if (score >= 6) {
+    return "Severe";
+  }
+
+  if (score >= 3) {
+    return "Moderate";
+  }
+
+  return "Minor";
+}
+
+function shouldTrackWildfireIncident(incident: WfigsIncident, distanceMiles: number) {
+  const acres = incident.sizeAcres;
+
+  if (acres != null && acres < 1 && distanceMiles > 20) {
+    return false;
+  }
+
+  if (acres == null && incident.percentContained == null && distanceMiles > 35) {
+    return false;
+  }
+
+  if (acres == null && distanceMiles > 60 && (incident.percentContained == null || incident.percentContained >= 80)) {
+    return false;
+  }
+
+  if (distanceMiles > 80 && (acres ?? 0) < 1_000) {
+    return false;
+  }
+
+  return true;
+}
+
+function isLowSignalWildfireName(name: string) {
+  return /^[A-Z]{2,6}-\d+$/i.test(name) || name.includes("/");
+}
+
+function buildWildfireLabelName(incident: WfigsIncident) {
+  if (isLowSignalWildfireName(incident.name) && incident.county) {
+    return `${incident.county} County`;
+  }
+
+  return incident.name;
+}
+
+function buildWildfireTitle(incident: WfigsIncident, distanceMiles: number) {
+  return `Nearby wildfire: ${buildWildfireLabelName(incident)} (${formatWildfireDistance(distanceMiles)} away)`;
+}
+
+function buildWildfireDescription(
+  destination: DestinationRow,
+  incident: WfigsIncident,
+  distanceMiles: number,
+) {
+  const parts = [
+    `${incident.name} is an active wildfire roughly ${formatWildfireDistance(distanceMiles)} from ${destination.name}.`,
+  ];
+  const context: string[] = [];
+
+  if (incident.county) {
+    context.push(`${incident.county} County`);
+  }
+
+  const acres = formatWildfireAcres(incident.sizeAcres);
+  if (acres) {
+    context.push(acres);
+  }
+
+  if (incident.percentContained != null) {
+    context.push(`${Math.round(incident.percentContained)}% contained`);
+  }
+
+  if (context.length > 0) {
+    parts.push(`Current incident context: ${context.join(", ")}.`);
+  }
+
+  if (buildWildfireLabelName(incident) !== incident.name) {
+    parts.push(`Official incident label: ${incident.name}.`);
+  }
+
+  if (incident.description) {
+    parts.push(incident.description);
+  }
+
+  return parts.join(" ");
+}
+
+function normalizeWfigsIncident(
+  feature: NonNullable<WfigsIncidentResponse["features"]>[number],
+): WfigsIncident | null {
+  const attributes = feature.attributes;
+
+  if (!attributes) {
+    return null;
+  }
+
+  const latitude = feature.geometry?.y ?? null;
+  const longitude = feature.geometry?.x ?? null;
+  const sourceId =
+    attributes.UniqueFireIdentifier ??
+    attributes.IrwinID ??
+    attributes.SourceGlobalID ??
+    null;
+  const name = attributes.IncidentName?.trim() ?? "";
+
+  if (!sourceId || !name || latitude == null || longitude == null || attributes.FireOutDateTime) {
+    return null;
+  }
+
+  return {
+    sourceId,
+    name,
+    description: attributes.IncidentShortDescription?.trim() || null,
+    county: attributes.POOCounty?.trim() || null,
+    percentContained: attributes.PercentContained ?? null,
+    sizeAcres: attributes.IncidentSize ?? null,
+    discoveryDate: epochToIso(parseNumber(attributes.FireDiscoveryDateTime)),
+    modifiedDate: epochToIso(parseNumber(attributes.ModifiedOnDateTime_dt)),
+    latitude,
+    longitude,
+  };
+}
+
+async function fetchCaliforniaWildfires() {
+  const response = await fetchArcgisJson<WfigsIncidentResponse>(californiaWildfireQueryUrl);
+
+  return (response.features ?? [])
+    .map((feature) => normalizeWfigsIncident(feature))
+    .filter((incident): incident is WfigsIncident => incident != null);
+}
+
 function formatCaltransTitle(closure: CaltransClosure) {
   const route =
     normalizeRoute(
@@ -436,9 +688,20 @@ function isRouteAccessAlert(alert: AlertRow) {
   );
 }
 
+function isFireOrSmokeAlert(alert: AlertRow) {
+  const text = `${alert.alert_type} ${alert.title} ${alert.description ?? ""}`.toLowerCase();
+  return alert.source === "wfigs" || /\bfire|wildfire|smoke|evacuat|red flag\b/.test(text);
+}
+
 function getRouteAccessAlert(alerts: AlertRow[]) {
   return alerts
     .filter(isRouteAccessAlert)
+    .sort((left, right) => alertSortWeight(right) - alertSortWeight(left))[0];
+}
+
+function getFireOrSmokeAlert(alerts: AlertRow[]) {
+  return alerts
+    .filter(isFireOrSmokeAlert)
     .sort((left, right) => alertSortWeight(right) - alertSortWeight(left))[0];
 }
 
@@ -500,9 +763,28 @@ function buildWeatherFallbackAlternative(destination: Destination, mode: "heat" 
   return `Bias the day toward sheltered stops near ${anchor}${primaryStops ? ` and ${primaryStops}` : ""}, and only keep one exposed viewpoint block if conditions still feel worth it.`;
 }
 
+function buildFireFallbackAlternative(destination: Destination) {
+  const anchor = destination.lodging.bestBase || destination.foodSupport.nearbyTown;
+  const town = destination.foodSupport.nearbyTown;
+  const shortStops = joinWithAnd(destination.suggestedStops.slice(0, 2));
+
+  return `Keep the trip anchored around ${anchor}${shortStops ? ` with a shorter loop through ${shortStops}` : ""}, and let ${town} carry the food and reset time instead of forcing the deepest or most exposed segment.`;
+}
+
 function buildDynamicPlanB(destination: Destination, weather: WeatherSummary | null, alerts: AlertRow[]) {
   const seededPlan = destination.planB;
   const routeAlert = getRouteAccessAlert(alerts);
+  const fireAlert = getFireOrSmokeAlert(alerts);
+
+  if (fireAlert) {
+    return {
+      trigger: `If nearby wildfire or smoke pressure, including "${fireAlert.title}", makes the full itinerary feel less responsible`,
+      alternative: buildFireFallbackAlternative(destination),
+      whyItWorks:
+        "You keep a lower-commitment version of the trip alive while avoiding the most exposure-sensitive segment.",
+      timeDifference: "Usually saves 60-120 minutes of remote mileage and leaves more room to bail early if conditions drift.",
+    };
+  }
 
   if (routeAlert) {
     const delayMinutes = parseEstimatedDelayMinutes(routeAlert);
@@ -554,9 +836,15 @@ function buildDynamicPlanB(destination: Destination, weather: WeatherSummary | n
 function computePlanBScore(destination: Destination, weather: WeatherSummary | null, alerts: AlertRow[]) {
   let score = destination.breakdown.planB;
   const routeAlert = getRouteAccessAlert(alerts);
+  const fireAlert = getFireOrSmokeAlert(alerts);
 
   if (!routeAlert && alerts.length === 0 && (weather?.heatRisk ?? 0) < 65 && (weather?.snowRisk ?? 0) < 55 && (weather?.windSpeed ?? 0) < 25 && (weather?.precipitationProbability ?? 0) < 60) {
     return clamp(score + 5, 32, 96);
+  }
+
+  if (fireAlert) {
+    score -= Math.round(severityPenalty(fireAlert.severity) * 0.45);
+    score += 3;
   }
 
   if (routeAlert) {
@@ -796,11 +1084,39 @@ function buildWeatherSentence(weather: WeatherSummary | null) {
 
 function buildAlertSentence(alerts: AlertRow[]) {
   if (alerts.length === 0) {
-    return "No active weather, park, or route alerts are currently being tracked for this destination.";
+    return "No active weather, park, forest, wildfire, or route alerts are currently being tracked for this destination.";
   }
 
   const primaryAlert = getPrimaryAlert(alerts);
   return `${alerts.length} active alert${alerts.length > 1 ? "s are" : " is"} being tracked, led by "${primaryAlert?.title ?? primaryAlert?.alert_type ?? "current alert"}".`;
+}
+
+function toDecisionWeather(weather: WeatherSummary | null) {
+  if (!weather) {
+    return null;
+  }
+
+  return {
+    snapshotDate: new Date().toISOString().slice(0, 10),
+    highTemp: weather.highTemp,
+    lowTemp: weather.lowTemp,
+    precipitationProbability: weather.precipitationProbability,
+    windSpeed: weather.windSpeed,
+    snowRisk: weather.snowRisk,
+    heatRisk: weather.heatRisk,
+  };
+}
+
+function toDecisionAlerts(alerts: AlertRow[]) {
+  return alerts.map((alert) => ({
+    source: alert.source,
+    alertType: alert.alert_type,
+    severity: alert.severity,
+    title: alert.title,
+    description: alert.description,
+    effectiveDate: alert.effective_date,
+    expirationDate: alert.expiration_date,
+  }));
 }
 
 function buildMainWarning(
@@ -808,6 +1124,12 @@ function buildMainWarning(
   weather: WeatherSummary | null,
   alerts: AlertRow[],
 ) {
+  const decision = getDecisionStatus(toDecisionAlerts(alerts), toDecisionWeather(weather));
+
+  if (decision.level === "block" || decision.level === "warn") {
+    return decision.signals[0]?.detail ?? destination.mainWarning;
+  }
+
   const primaryAlert = getPrimaryAlert(alerts);
 
   if (primaryAlert) {
@@ -852,22 +1174,27 @@ function buildCurrentVerdict(
   weather: WeatherSummary | null,
   alerts: AlertRow[],
 ) {
+  const decision = getDecisionStatus(toDecisionAlerts(alerts), toDecisionWeather(weather));
   const lead =
-    fitLabel === "Excellent now"
-      ? "Strong current pick."
-      : fitLabel === "Good with caution"
-        ? "Still workable, but some caution is justified."
-        : fitLabel === "Mixed conditions"
-          ? "Conditions are mixed enough that tradeoffs are obvious."
-          : "This is currently a weak fit unless your constraints are very specific.";
+    decision.level === "block"
+      ? "Hard access constraints are active."
+      : decision.level === "warn"
+        ? "Active warnings are shaping the trip."
+        : fitLabel === "Excellent now"
+          ? "Strong current pick."
+          : fitLabel === "Good with caution"
+            ? "Still workable, but some caution is justified."
+            : fitLabel === "Mixed conditions"
+              ? "Conditions are mixed enough that tradeoffs are obvious."
+              : "This is currently a weak fit unless your constraints are very specific.";
 
   if (alerts.length > 0) {
     const primaryAlert = getPrimaryAlert(alerts);
-    return `${lead} The main trip-shaping issue right now is ${primaryAlert?.title ?? "an active alert"}.`;
+    return `${lead} ${decision.headline} The main trip-shaping issue right now is ${primaryAlert?.title ?? "an active alert"}.`;
   }
 
   if (weather) {
-    return `${lead} Weather is currently pointing to highs near ${weather.highTemp}F and lows near ${weather.lowTemp}F.`;
+    return `${lead} ${decision.headline} Weather is currently pointing to highs near ${weather.highTemp}F and lows near ${weather.lowTemp}F.`;
   }
 
   return `${lead} Live conditions have not been ingested yet, so the seeded verdict remains in effect.`;
@@ -1006,6 +1333,15 @@ export async function syncAlerts() {
     }),
   ).sort((left, right) => left - right);
   const caltransClosuresByDistrict = new Map<number, CaltransClosure[]>();
+  const usfsAlertsByUrl = new Map<
+    string,
+    ReturnType<typeof parseUsfsAlertsPage>
+  >();
+  const usfsConditionsByUrl = new Map<
+    string,
+    ReturnType<typeof parseUsfsConditionsPage>
+  >();
+  let californiaWildfires: WfigsIncident[] = [];
 
   const destinationIds = destinations.map((destination) => destination.id);
   if (destinationIds.length > 0) {
@@ -1013,7 +1349,7 @@ export async function syncAlerts() {
       .from("alerts")
       .delete()
       .in("destination_id", destinationIds)
-      .in("source", ["nws", "nps", "caltrans"]);
+      .in("source", ["nws", "nps", "caltrans", "wfigs", "usfs"]);
 
     if (deleteError) {
       throw deleteError;
@@ -1034,6 +1370,48 @@ export async function syncAlerts() {
       caltransClosuresByDistrict.set(district, activeClosures);
     } catch (error) {
       console.warn(`Skipping CalTrans lane-closure sync for district ${district}:`, error);
+    }
+  }
+
+  try {
+    californiaWildfires = await fetchCaliforniaWildfires();
+  } catch (error) {
+    console.warn("Skipping WFIGS wildfire sync:", error);
+  }
+
+  const usfsAlertUrls = unique(
+    destinations.flatMap((destination) => {
+      const watch =
+        destinationSeedMeta[destination.slug as keyof typeof destinationSeedMeta]?.usfsWatch;
+
+      return watch?.alertsUrl ? [watch.alertsUrl] : [];
+    }),
+  );
+  const usfsConditionsUrls = unique(
+    destinations.flatMap((destination) => {
+      const watch =
+        destinationSeedMeta[destination.slug as keyof typeof destinationSeedMeta]
+          ?.usfsConditionsWatch;
+
+      return watch?.conditionsUrl ? [watch.conditionsUrl] : [];
+    }),
+  );
+
+  for (const alertsUrl of usfsAlertUrls) {
+    try {
+      const html = await fetchHtml(alertsUrl);
+      usfsAlertsByUrl.set(alertsUrl, parseUsfsAlertsPage(html, alertsUrl));
+    } catch (error) {
+      console.warn(`Skipping USFS alerts sync for ${alertsUrl}:`, error);
+    }
+  }
+
+  for (const conditionsUrl of usfsConditionsUrls) {
+    try {
+      const html = await fetchHtml(conditionsUrl);
+      usfsConditionsByUrl.set(conditionsUrl, parseUsfsConditionsPage(html));
+    } catch (error) {
+      console.warn(`Skipping USFS conditions sync for ${conditionsUrl}:`, error);
     }
   }
 
@@ -1100,6 +1478,11 @@ export async function syncAlerts() {
 
     const caltransWatch =
       destinationSeedMeta[destination.slug as keyof typeof destinationSeedMeta]?.caltransWatch;
+    const usfsWatch =
+      destinationSeedMeta[destination.slug as keyof typeof destinationSeedMeta]?.usfsWatch;
+    const usfsConditionsWatch =
+      destinationSeedMeta[destination.slug as keyof typeof destinationSeedMeta]
+        ?.usfsConditionsWatch;
 
     if (caltransWatch) {
       const matchingClosures = caltransWatch.districts.flatMap((district) => {
@@ -1139,6 +1522,112 @@ export async function syncAlerts() {
           });
         });
     }
+
+    if (usfsWatch) {
+      const relevantUsfsAlerts = selectRelevantUsfsAlerts(
+        usfsAlertsByUrl.get(usfsWatch.alertsUrl) ?? [],
+        usfsWatch,
+      ).slice(0, usfsWatch.maxAlerts ?? 4);
+
+      rowsToInsert.push(
+        ...relevantUsfsAlerts.map((alert) => ({
+          destination_id: destination.id,
+          source: "usfs",
+          source_id: alert.href,
+          alert_type: "Forest alert",
+          severity: mapUsfsSeverity(alert.levelClass),
+          title: alert.title,
+          description: [alert.description, alert.forestOrder ? `Forest Order: ${alert.forestOrder}.` : null]
+            .filter(Boolean)
+            .join(" "),
+          effective_date: alert.effectiveDate,
+          expiration_date: alert.expirationDate,
+        })),
+      );
+    }
+
+    if (usfsConditionsWatch) {
+      const parsedConditions = usfsConditionsByUrl.get(usfsConditionsWatch.conditionsUrl);
+
+      if (parsedConditions) {
+        const relevantConditionLines = selectRelevantUsfsConditionLines(
+          parsedConditions,
+          usfsConditionsWatch,
+        );
+
+        rowsToInsert.push(
+          ...relevantConditionLines.map((line, index) => ({
+            destination_id: destination.id,
+            source: "usfs",
+            source_id: `${usfsConditionsWatch.conditionsUrl}#${index}-${line.slice(0, 48)}`,
+            alert_type: "Forest condition",
+            severity: mapUsfsConditionSeverity(line),
+            title: line,
+            description: parsedConditions.lastUpdated
+              ? `Current conditions update from ${usfsConditionsWatch.forestName}. Last updated ${new Date(parsedConditions.lastUpdated).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}.`
+              : `Current conditions update from ${usfsConditionsWatch.forestName}.`,
+            effective_date: parsedConditions.lastUpdated,
+            expiration_date: null,
+          })),
+        );
+      }
+    }
+
+    if (destination.latitude != null && destination.longitude != null && californiaWildfires.length > 0) {
+      californiaWildfires
+        .map((incident) => ({
+          incident,
+          distanceMiles: haversineMiles(
+            destination.latitude!,
+            destination.longitude!,
+            incident.latitude,
+            incident.longitude,
+          ),
+        }))
+        .filter(({ distanceMiles }) => distanceMiles <= wildfireRadiusMilesForDestination(destination))
+        .filter(({ incident, distanceMiles }) => shouldTrackWildfireIncident(incident, distanceMiles))
+        .sort((left, right) => {
+          const severityDelta =
+            severityPenalty(
+              inferWildfireSeverity(
+                right.distanceMiles,
+                right.incident.sizeAcres,
+                right.incident.percentContained,
+              ),
+            ) -
+            severityPenalty(
+              inferWildfireSeverity(
+                left.distanceMiles,
+                left.incident.sizeAcres,
+                left.incident.percentContained,
+              ),
+            );
+
+          if (severityDelta !== 0) {
+            return severityDelta;
+          }
+
+          return left.distanceMiles - right.distanceMiles;
+        })
+        .slice(0, 3)
+        .forEach(({ incident, distanceMiles }) => {
+          rowsToInsert.push({
+            destination_id: destination.id,
+            source: "wfigs",
+            source_id: incident.sourceId,
+            alert_type: "Wildfire incident",
+            severity: inferWildfireSeverity(
+              distanceMiles,
+              incident.sizeAcres,
+              incident.percentContained,
+            ),
+            title: buildWildfireTitle(incident, distanceMiles),
+            description: buildWildfireDescription(destination, incident, distanceMiles),
+            effective_date: incident.discoveryDate,
+            expiration_date: null,
+          });
+        });
+    }
   }
 
   const dedupedRows = unique(
@@ -1173,6 +1662,8 @@ export async function syncAlerts() {
     nwsCount: dedupedRows.filter((row) => row.source === "nws").length,
     npsCount: dedupedRows.filter((row) => row.source === "nps").length,
     caltransCount: dedupedRows.filter((row) => row.source === "caltrans").length,
+    usfsCount: dedupedRows.filter((row) => row.source === "usfs").length,
+    wildfireCount: dedupedRows.filter((row) => row.source === "wfigs").length,
   };
 }
 
