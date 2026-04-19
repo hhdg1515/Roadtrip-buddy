@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { getCurrentUser, getSavedTripSummaries, getUserPreferences } from "@/lib/account";
 import { formatUpdatedAt } from "@/lib/live-conditions";
+import { pickPlanningQueryString, withQueryString } from "@/lib/planning";
 import { deleteSavedTripAction, renameSavedTripAction } from "@/app/saved/actions";
 
 type PageProps = {
@@ -17,6 +18,9 @@ type PageProps = {
 export default async function SavedPage({ searchParams }: PageProps) {
   const resolvedSearchParams = searchParams ? await searchParams : {};
   const status = getFirstValue(resolvedSearchParams.status);
+  const planningQueryString = pickPlanningQueryString(resolvedSearchParams);
+  const savedPath = withQueryString("/saved", planningQueryString);
+  const planPath = withQueryString("/plan", planningQueryString);
   const [{ isConfigured }, user, savedTrips] = await Promise.all([
     getUserPreferences(),
     getCurrentUser(),
@@ -42,7 +46,7 @@ export default async function SavedPage({ searchParams }: PageProps) {
               live condition context.
             </p>
             <Link
-              href="/profile?next=%2Fsaved"
+              href={`/profile?next=${encodeURIComponent(savedPath)}`}
               className={buttonVariants({ variant: "primary", size: "sm" })}
             >
               Open profile sign-in
@@ -67,7 +71,7 @@ export default async function SavedPage({ searchParams }: PageProps) {
             <p className="text-muted">
               Nothing saved yet. Open a plan and hit save.
             </p>
-            <Link href="/plan" className={buttonVariants({ variant: "primary", size: "sm" })}>
+            <Link href={planPath} className={buttonVariants({ variant: "primary", size: "sm" })}>
               Open planning
             </Link>
           </CardBody>
@@ -126,7 +130,7 @@ export default async function SavedPage({ searchParams }: PageProps) {
 
                 <div className="flex flex-wrap gap-2">
                   <Link
-                    href={`/destinations/${trip.slug}`}
+                    href={trip.destinationHref}
                     className={buttonVariants({ variant: "primary", size: "sm" })}
                   >
                     Open trip

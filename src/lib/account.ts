@@ -2,7 +2,22 @@ import "server-only";
 import { cache } from "react";
 import type { User } from "@supabase/supabase-js";
 import { getAllDestinations } from "@/lib/data/repository";
-import { planningPreset } from "@/lib/data/openseason";
+import {
+  planningPreset,
+  type DrivingTolerance,
+  type GroupProfile,
+  type InterestKey,
+  type LodgingStyle,
+  type Origin,
+} from "@/lib/data/openseason";
+import { toSavedTripQueryString, withQueryString } from "@/lib/planning";
+import {
+  isInterestKey,
+  parseDrivingTolerance,
+  parseGroupProfile,
+  parseLodgingStyle,
+  parseOrigin,
+} from "@/lib/planning-params";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 
@@ -23,6 +38,7 @@ type SavedTripRow = {
   title: string;
   user_origin: string;
   created_at: string;
+  preferences: Record<string, unknown> | null;
   destination:
     | {
         slug: string;
@@ -38,11 +54,11 @@ type SavedTripRow = {
 };
 
 export type UserPreferences = {
-  originCity: string;
-  drivingTolerance: string;
-  favoriteActivities: string[];
-  groupDefault: string;
-  lodgingPreference: string;
+  origin: Origin;
+  drivingTolerance: DrivingTolerance;
+  groupProfile: GroupProfile;
+  lodgingStyle: LodgingStyle;
+  interests: InterestKey[];
   avoidances: string[];
   updatedAt: string | null;
 };
@@ -55,6 +71,7 @@ export type SavedTripSummary = {
   region: string;
   savedAt: string;
   userOrigin: string;
+  destinationHref: string;
   fitScore: number | null;
   fitLabel: string | null;
   currentVerdict: string | null;
@@ -63,11 +80,11 @@ export type SavedTripSummary = {
 };
 
 const defaultPreferences: UserPreferences = {
-  originCity: "Bay Area",
-  drivingTolerance: planningPreset.drivingTolerance,
-  favoriteActivities: planningPreset.interests,
-  groupDefault: planningPreset.groupType,
-  lodgingPreference: "Base town with food backup options",
+  origin: planningPreset.origin,
+  drivingTolerance: planningPreset.drivingToleranceId,
+  groupProfile: planningPreset.groupProfile,
+  lodgingStyle: planningPreset.lodgingStyle,
+  interests: [...planningPreset.interestKeys],
   avoidances: ["Overcommitting to fragile mountain access", "Last-minute closure surprises"],
   updatedAt: null,
 };
@@ -143,12 +160,15 @@ export async function getUserPreferences() {
     user,
     preferences: row
       ? {
-          originCity: row.origin_city ?? defaultPreferences.originCity,
-          drivingTolerance: row.driving_tolerance ?? defaultPreferences.drivingTolerance,
-          favoriteActivities:
-            row.favorite_activities?.filter(Boolean) ?? defaultPreferences.favoriteActivities,
-          groupDefault: row.group_default ?? defaultPreferences.groupDefault,
-          lodgingPreference: row.lodging_preference ?? defaultPreferences.lodgingPreference,
+          origin: parseOrigin(row.origin_city) ?? defaultPreferences.origin,
+          drivingTolerance:
+            parseDrivingTolerance(row.driving_tolerance) ?? defaultPreferences.drivingTolerance,
+          groupProfile:
+            parseGroupProfile(row.group_default) ?? defaultPreferences.groupProfile,
+          lodgingStyle:
+            parseLodgingStyle(row.lodging_preference) ?? defaultPreferences.lodgingStyle,
+          interests:
+            row.favorite_activities?.filter(isInterestKey) ?? defaultPreferences.interests,
           avoidances: row.avoidances?.filter(Boolean) ?? defaultPreferences.avoidances,
           updatedAt: row.updated_at ?? null,
         }
@@ -171,6 +191,7 @@ export async function getSavedTripSummaries(): Promise<SavedTripSummary[]> {
         title,
         user_origin,
         created_at,
+        preferences,
         destination:destinations (
           slug,
           name,
@@ -208,6 +229,13 @@ export async function getSavedTripSummaries(): Promise<SavedTripSummary[]> {
         region: destination.region,
         savedAt: row.created_at,
         userOrigin: row.user_origin,
+        destinationHref: withQueryString(
+          `/destinations/${destination.slug}`,
+          toSavedTripQueryString({
+            userOrigin: row.user_origin,
+            preferences: row.preferences,
+          }),
+        ),
         fitScore: current?.fitScore ?? null,
         fitLabel: current?.fitLabel ?? null,
         currentVerdict: current?.currentVerdict ?? null,

@@ -2,6 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import {
+  isInterestKey,
+  parseDrivingTolerance,
+  parseGroupProfile,
+  parseLodgingStyle,
+  parseOrigin,
+} from "@/lib/planning-params";
 import { sanitizeNextPath } from "@/lib/safe-next-path";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
@@ -72,14 +79,26 @@ export async function savePreferencesAction(formData: FormData) {
     redirect("/profile?status=sign-in-required");
   }
 
+  const origin = parseOrigin(String(formData.get("origin") ?? ""));
+  const drivingTolerance = parseDrivingTolerance(String(formData.get("drivingTolerance") ?? ""));
+  const groupProfile = parseGroupProfile(String(formData.get("groupProfile") ?? ""));
+  const lodgingStyle = parseLodgingStyle(String(formData.get("lodgingStyle") ?? ""));
+
+  if (!origin || !drivingTolerance || !groupProfile || !lodgingStyle) {
+    redirect("/profile?status=preferences-error");
+  }
+
+  const interests = formData.getAll("interests").map(String).filter(isInterestKey);
+  const avoidances = parseList(formData.get("avoidances"));
+
   const payload = {
     user_id: user.id,
-    origin_city: normalizeText(formData.get("originCity")),
-    driving_tolerance: normalizeText(formData.get("drivingTolerance")),
-    favorite_activities: parseList(formData.get("favoriteActivities")),
-    group_default: normalizeText(formData.get("groupDefault")),
-    lodging_preference: normalizeText(formData.get("lodgingPreference")),
-    avoidances: parseList(formData.get("avoidances")),
+    origin_city: origin,
+    driving_tolerance: drivingTolerance,
+    favorite_activities: interests,
+    group_default: groupProfile,
+    lodging_preference: lodgingStyle,
+    avoidances,
     updated_at: new Date().toISOString(),
   };
 
@@ -93,12 +112,8 @@ export async function savePreferencesAction(formData: FormData) {
   }
 
   revalidatePath("/profile");
+  revalidatePath("/");
   redirect("/profile?status=preferences-saved");
-}
-
-function normalizeText(value: FormDataEntryValue | null) {
-  const text = String(value ?? "").trim();
-  return text.length > 0 ? text : null;
 }
 
 function parseList(value: FormDataEntryValue | null) {

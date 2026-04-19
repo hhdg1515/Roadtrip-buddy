@@ -1,10 +1,16 @@
 import { Badge } from "@/components/ui/badge";
 import { FormSubmitButton } from "@/components/ui/form-submit-button";
-import { Input } from "@/components/ui/input";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { Textarea } from "@/components/ui/textarea";
 import { getSavedTripSummaries, getUserPreferences } from "@/lib/account";
+import {
+  drivingToleranceOptions,
+  groupProfileOptions,
+  interestOptions,
+  lodgingStyleOptions,
+  originOptions,
+} from "@/lib/data/openseason";
 import { formatUpdatedAt } from "@/lib/live-conditions";
 import { sanitizeNextPath } from "@/lib/safe-next-path";
 import {
@@ -12,6 +18,9 @@ import {
   savePreferencesAction,
   signOutAction,
 } from "@/app/profile/actions";
+
+const inputClass =
+  "h-10 w-full rounded-md bg-muted-soft px-3 text-sm text-foreground outline-none transition focus:ring-2 focus:ring-ocean/30";
 
 type PageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -71,12 +80,13 @@ export default async function ProfilePage({ searchParams }: PageProps) {
                   <label htmlFor="email" className="block text-xs text-muted">
                     Email
                   </label>
-                  <Input
+                  <input
                     id="email"
                     name="email"
                     type="email"
                     placeholder="you@example.com"
                     required
+                    className={inputClass}
                   />
                 </div>
                 <FormSubmitButton pendingLabel="Sending link...">
@@ -99,7 +109,7 @@ export default async function ProfilePage({ searchParams }: PageProps) {
               <p>Origin, group, and activity defaults persist across visits.</p>
               {next !== "/profile" ? (
                 <p>
-                  After sign-in you'll return to{" "}
+                  After sign-in you&rsquo;ll return to{" "}
                   <span className="font-medium text-foreground">{next}</span>.
                 </p>
               ) : null}
@@ -168,56 +178,88 @@ export default async function ProfilePage({ searchParams }: PageProps) {
         <CardBody className="space-y-5">
           <form action={savePreferencesAction} className="space-y-5">
             <div className="grid gap-4 md:grid-cols-2">
-              <Field label="Origin city" htmlFor="originCity">
-                <Input id="originCity" name="originCity" defaultValue={preferences.originCity} />
+              <Field label="Origin city" htmlFor="origin">
+                <select id="origin" name="origin" defaultValue={preferences.origin} className={inputClass}>
+                  {originOptions.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
               </Field>
               <Field label="Driving tolerance" htmlFor="drivingTolerance">
-                <Input
+                <select
                   id="drivingTolerance"
                   name="drivingTolerance"
                   defaultValue={preferences.drivingTolerance}
-                />
+                  className={inputClass}
+                >
+                  {drivingToleranceOptions.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
               </Field>
-              <Field label="Group default" htmlFor="groupDefault">
-                <Input
-                  id="groupDefault"
-                  name="groupDefault"
-                  defaultValue={preferences.groupDefault}
-                />
+              <Field label="Typical group" htmlFor="groupProfile">
+                <select
+                  id="groupProfile"
+                  name="groupProfile"
+                  defaultValue={preferences.groupProfile}
+                  className={inputClass}
+                >
+                  {groupProfileOptions.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
               </Field>
-              <Field label="Lodging preference" htmlFor="lodgingPreference">
-                <Input
-                  id="lodgingPreference"
-                  name="lodgingPreference"
-                  defaultValue={preferences.lodgingPreference}
-                />
+              <Field label="Lodging preference" htmlFor="lodgingStyle">
+                <select
+                  id="lodgingStyle"
+                  name="lodgingStyle"
+                  defaultValue={preferences.lodgingStyle}
+                  className={inputClass}
+                >
+                  {lodgingStyleOptions.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
               </Field>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field
-                label="Favorite activities"
-                helper="Comma separated. Example: Scenic views, Easy hiking."
-                htmlFor="favoriteActivities"
-              >
-                <Textarea
-                  id="favoriteActivities"
-                  name="favoriteActivities"
-                  defaultValue={preferences.favoriteActivities.join(", ")}
-                />
-              </Field>
-              <Field
-                label="Avoidances"
-                helper="Example: snow uncertainty, long dirt roads, heavy crowds."
-                htmlFor="avoidances"
-              >
-                <Textarea
-                  id="avoidances"
-                  name="avoidances"
-                  defaultValue={preferences.avoidances.join(", ")}
-                />
-              </Field>
-            </div>
+            <fieldset className="space-y-2">
+              <legend className="text-xs text-muted">Favorite activities</legend>
+              <div className="grid gap-1.5 sm:grid-cols-2">
+                {interestOptions.map((interest) => (
+                  <label key={interest.id} className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      name="interests"
+                      value={interest.id}
+                      defaultChecked={preferences.interests.includes(interest.id)}
+                      className="h-4 w-4 rounded accent-[var(--color-ocean)]"
+                    />
+                    {interest.label}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+
+            <Field
+              label="Avoidances"
+              helper="Comma or newline separated. Example: snow uncertainty, long dirt roads."
+              htmlFor="avoidances"
+            >
+              <Textarea
+                id="avoidances"
+                name="avoidances"
+                defaultValue={preferences.avoidances.join(", ")}
+              />
+            </Field>
 
             <FormSubmitButton pendingLabel="Saving...">
               Save defaults

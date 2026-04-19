@@ -14,9 +14,11 @@ import {
 export function DestinationCard({
   destination,
   origin,
+  href = `/destinations/${destination.slug}`,
 }: Readonly<{
   destination: Destination;
   origin: Origin;
+  href?: string;
 }>) {
   const weatherMetrics = formatWeatherMetrics(destination.liveWeather).slice(0, 3);
   const primaryAlert = getPrimaryAlert(destination.activeAlerts);
@@ -25,7 +27,7 @@ export function DestinationCard({
 
   return (
     <Link
-      href={`/destinations/${destination.slug}`}
+      href={href}
       className="group block h-full rounded-lg transition hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean/40"
     >
       <Card className="flex h-full flex-col">

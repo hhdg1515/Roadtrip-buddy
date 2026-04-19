@@ -10,15 +10,25 @@ import {
   interestOptions,
   originOptions,
 } from "@/lib/data/openseason";
-import { getPlanningState } from "@/lib/planning";
+import {
+  getPlanningState,
+  pickPlanningQueryString,
+  withQueryString,
+} from "@/lib/planning";
 import { completeOnboardingAction } from "@/app/onboarding/actions";
 
 const inputClass =
   "h-10 w-full rounded-md bg-muted-soft px-3 text-sm text-foreground outline-none transition focus:ring-2 focus:ring-ocean/30";
 
-export default async function OnboardingPage() {
+type PageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function OnboardingPage({ searchParams }: PageProps) {
+  const resolvedSearchParams = searchParams ? await searchParams : {};
   const { user, preferences } = await getUserPreferences();
-  const planningState = getPlanningState({}, preferences);
+  const planningState = getPlanningState(resolvedSearchParams, preferences);
+  const planPath = withQueryString("/plan", pickPlanningQueryString(resolvedSearchParams));
 
   return (
     <div className="space-y-10 py-8">
@@ -129,7 +139,7 @@ export default async function OnboardingPage() {
                 <FormSubmitButton pendingLabel="Building shortlist...">
                   See my shortlist
                 </FormSubmitButton>
-                <Link href="/plan" className={buttonVariants({ variant: "ghost" })}>
+                <Link href={planPath} className={buttonVariants({ variant: "ghost" })}>
                   Skip for now
                 </Link>
               </div>

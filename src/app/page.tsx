@@ -19,6 +19,7 @@ import {
   labelTripLength,
   toComparisonQueryString,
   toPlanningQueryString,
+  withPlanningQuery,
 } from "@/lib/planning";
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -70,7 +71,10 @@ export default async function Home({
                 {hasSavedDefaults ? "Refine brief" : "Start onboarding"}
               </Link>
               <Link
-                href={`/destinations/${topRecommendations[0]?.slug ?? "big-sur-carmel"}`}
+                href={withPlanningQuery(
+                  `/destinations/${topRecommendations[0]?.slug ?? "big-sur-carmel"}`,
+                  planningState,
+                )}
                 className={buttonVariants({ variant: "secondary" })}
               >
                 Best current pick
@@ -104,6 +108,7 @@ export default async function Home({
               key={destination.slug}
               destination={destination}
               origin={planningState.origin}
+              href={withPlanningQuery(`/destinations/${destination.slug}`, planningState)}
             />
           ))}
         </div>
@@ -153,7 +158,7 @@ export default async function Home({
                     <tr key={destination.slug} className="align-top">
                       <td className="py-3 pr-4">
                         <Link
-                          href={`/destinations/${destination.slug}`}
+                          href={withPlanningQuery(`/destinations/${destination.slug}`, planningState)}
                           className="font-medium hover:text-ocean"
                         >
                           {destination.name}

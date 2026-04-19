@@ -21,6 +21,7 @@ import {
   getPlanningState,
   labelDrivingTolerance,
   labelGroupProfile,
+  labelOrigin,
   labelTripFormat,
   labelLodgingStyle,
   labelTripIntensity,
@@ -71,7 +72,7 @@ export default async function PlanPage({ searchParams }: PageProps) {
         <StatusNote
           tone="default"
           label="Profile defaults"
-          message={`Seeded from ${preferences.originCity}.`}
+          message={`Seeded from ${labelOrigin(preferences.origin)}.`}
         />
       ) : null}
 

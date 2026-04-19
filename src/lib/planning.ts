@@ -134,6 +134,46 @@ export function toPlanningQueryString(state: Omit<PlanningState, "usedProfileDef
   return params.toString();
 }
 
+export function withPlanningQuery(path: string, state: Omit<PlanningState, "usedProfileDefaults">) {
+  return withQueryString(path, toPlanningQueryString(state));
+}
+
+export function pickPlanningQueryString(
+  searchParams: Record<string, string | string[] | undefined>,
+) {
+  const params = new URLSearchParams();
+
+  for (const key of [
+    "origin",
+    "tripLength",
+    "startDate",
+    "drivingTolerance",
+    "groupProfile",
+    "tripFormat",
+    "tripIntensity",
+    "lodgingStyle",
+    "interestMode",
+    "interests",
+  ] as const) {
+    const value = searchParams[key];
+
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        if (item) {
+          params.append(key, item);
+        }
+      }
+      continue;
+    }
+
+    if (value) {
+      params.set(key, value);
+    }
+  }
+
+  return params.toString();
+}
+
 export function toComparisonQueryString(
   state: Omit<PlanningState, "usedProfileDefaults">,
   slugs: string[],
@@ -145,6 +185,64 @@ export function toComparisonQueryString(
   }
 
   return params.toString();
+}
+
+export function toSavedTripQueryString(input: {
+  userOrigin: string | null | undefined;
+  preferences: Record<string, unknown> | null | undefined;
+}) {
+  const params = new URLSearchParams();
+  const origin = parseOrigin(input.userOrigin);
+  const preferenceRecord = input.preferences ?? {};
+
+  const tripLength = parseTripLength(readString(preferenceRecord.tripLength));
+  const startDate = parseStartDate(readString(preferenceRecord.startDate));
+  const drivingTolerance = parseDrivingTolerance(readString(preferenceRecord.drivingTolerance));
+  const groupProfile = parseGroupProfile(readString(preferenceRecord.groupProfile));
+  const tripFormat = parseTripFormat(readString(preferenceRecord.tripFormat));
+  const tripIntensity = parseTripIntensity(readString(preferenceRecord.tripIntensity));
+  const lodgingStyle = parseLodgingStyle(readString(preferenceRecord.lodgingStyle));
+  const interestMode = parseInterestMode(readString(preferenceRecord.interestMode));
+  const interests = parseInterests(readStringArray(preferenceRecord.interests));
+
+  if (origin) {
+    params.set("origin", origin);
+  }
+  if (tripLength) {
+    params.set("tripLength", tripLength);
+  }
+  if (startDate) {
+    params.set("startDate", startDate);
+  }
+  if (drivingTolerance) {
+    params.set("drivingTolerance", drivingTolerance);
+  }
+  if (groupProfile) {
+    params.set("groupProfile", groupProfile);
+  }
+  if (tripFormat) {
+    params.set("tripFormat", tripFormat);
+  }
+  if (tripIntensity) {
+    params.set("tripIntensity", tripIntensity);
+  }
+  if (lodgingStyle) {
+    params.set("lodgingStyle", lodgingStyle);
+  }
+  if (interestMode) {
+    params.set("interestMode", interestMode);
+  }
+  if (interestMode === "specific") {
+    for (const interest of interests) {
+      params.append("interests", interest);
+    }
+  }
+
+  return params.toString();
+}
+
+export function withQueryString(path: string, queryString: string | null | undefined) {
+  return queryString ? `${path}?${queryString}` : path;
 }
 
 export function describePlanningState(state: PlanningState) {
@@ -296,158 +394,40 @@ export function labelInterest(interest: InterestKey) {
 function getDefaultPlanningState(
   preferences?: UserPreferences,
 ): Omit<PlanningState, "usedProfileDefaults"> {
-  const inferredOrigin = inferOrigin(preferences?.originCity);
-  const inferredDrivingTolerance = inferDrivingTolerance(preferences?.drivingTolerance);
-  const inferredGroupProfile = inferGroupProfile(preferences?.groupDefault);
-  const inferredTripIntensity = inferTripIntensity(preferences?.groupDefault);
-  const inferredLodgingStyle = inferLodgingStyle(preferences?.lodgingPreference);
-  const inferredInterests = inferInterests(preferences?.favoriteActivities ?? []);
+  const groupProfile = preferences?.groupProfile ?? planningPreset.groupProfile;
+  const interests = preferences?.interests ?? [...planningPreset.interestKeys];
 
   return {
-    origin: inferredOrigin ?? planningPreset.origin,
+    origin: preferences?.origin ?? planningPreset.origin,
     tripLength: planningPreset.tripLength,
     startDate: null,
-    drivingTolerance: inferredDrivingTolerance ?? planningPreset.drivingToleranceId,
-    groupProfile: inferredGroupProfile ?? planningPreset.groupProfile,
+    drivingTolerance: preferences?.drivingTolerance ?? planningPreset.drivingToleranceId,
+    groupProfile,
     tripFormat: planningPreset.tripFormat,
-    tripIntensity: inferredTripIntensity ?? planningPreset.tripIntensity,
-    lodgingStyle: inferredLodgingStyle ?? planningPreset.lodgingStyle,
-    interestMode: inferredInterests.length > 0 ? "specific" : "open",
-    interests:
-      inferredInterests.length > 0 ? inferredInterests : [...planningPreset.interestKeys],
+    tripIntensity: deriveTripIntensity(groupProfile),
+    lodgingStyle: preferences?.lodgingStyle ?? planningPreset.lodgingStyle,
+    interestMode: interests.length > 0 ? "specific" : "open",
+    interests: interests.length > 0 ? interests : [...planningPreset.interestKeys],
   };
 }
 
-function inferOrigin(originCity: string | undefined) {
-  const normalized = normalizeText(originCity ?? "");
-
-  if (normalized.includes("bay")) {
-    return "bay-area" satisfies Origin;
+function deriveTripIntensity(groupProfile: GroupProfile): TripIntensity {
+  switch (groupProfile) {
+    case "active":
+      return "full-days";
+    case "easygoing":
+      return "slow";
+    default:
+      return "balanced";
   }
-  if (normalized.includes("los angeles") || normalized.includes("la")) {
-    return "los-angeles" satisfies Origin;
-  }
-  if (normalized.includes("san diego")) {
-    return "san-diego" satisfies Origin;
-  }
-  if (normalized.includes("sacramento")) {
-    return "sacramento" satisfies Origin;
-  }
-
-  return null;
 }
 
-function inferDrivingTolerance(value: string | undefined) {
-  const normalized = normalizeText(value ?? "");
-
-  if (normalized.includes("4") || normalized.includes("tight")) {
-    return "tight" satisfies DrivingTolerance;
-  }
-  if (
-    normalized.includes("7") ||
-    normalized.includes("8") ||
-    normalized.includes("long") ||
-    normalized.includes("stretch")
-  ) {
-    return "stretch" satisfies DrivingTolerance;
-  }
-  if (normalized.length > 0) {
-    return "balanced" satisfies DrivingTolerance;
-  }
-
-  return null;
+function readString(value: unknown) {
+  return typeof value === "string" ? value : null;
 }
 
-function inferGroupProfile(value: string | undefined) {
-  const normalized = normalizeText(value ?? "");
-
-  if (normalized.includes("mixed") || normalized.includes("non hiker")) {
-    return "mixed" satisfies GroupProfile;
-  }
-  if (normalized.includes("active") || normalized.includes("hiker")) {
-    return "active" satisfies GroupProfile;
-  }
-  if (normalized.includes("food") || normalized.includes("cafe") || normalized.includes("town")) {
-    return "food-first" satisfies GroupProfile;
-  }
-  if (normalized.includes("easy") || normalized.includes("scenic") || normalized.includes("low")) {
-    return "easygoing" satisfies GroupProfile;
-  }
-
-  return null;
-}
-
-function inferTripIntensity(value: string | undefined) {
-  const normalized = normalizeText(value ?? "");
-
-  if (normalized.includes("easy") || normalized.includes("low") || normalized.includes("slow")) {
-    return "slow" satisfies TripIntensity;
-  }
-  if (normalized.includes("active") || normalized.includes("hiker")) {
-    return "full-days" satisfies TripIntensity;
-  }
-  if (normalized.length > 0) {
-    return "balanced" satisfies TripIntensity;
-  }
-
-  return null;
-}
-
-function inferLodgingStyle(value: string | undefined) {
-  const normalized = normalizeText(value ?? "");
-
-  if (normalized.includes("camp")) {
-    return "camping" satisfies LodgingStyle;
-  }
-  if (
-    normalized.includes("cabin") ||
-    normalized.includes("lodge") ||
-    normalized.includes("resort")
-  ) {
-    return "cabin-lodge" satisfies LodgingStyle;
-  }
-  if (
-    normalized.includes("town") ||
-    normalized.includes("food") ||
-    normalized.includes("cafe")
-  ) {
-    return "town-base" satisfies LodgingStyle;
-  }
-
-  return null;
-}
-
-function inferInterests(values: string[]) {
-  const inferred = new Set<InterestKey>();
-
-  for (const value of values) {
-    const normalized = normalizeText(value);
-
-    if (normalized.includes("scenic") || normalized.includes("view")) {
-      inferred.add("scenic-views");
-    }
-    if (normalized.includes("moderate") || normalized.includes("hiking") || normalized.includes("hike")) {
-      inferred.add("moderate-hiking");
-    }
-    if (normalized.includes("easy") || normalized.includes("walk")) {
-      inferred.add("easy-walks");
-    }
-    if (normalized.includes("food") || normalized.includes("cafe") || normalized.includes("dinner")) {
-      inferred.add("good-food");
-    }
-    if (normalized.includes("photo")) {
-      inferred.add("photography");
-    }
-    if (normalized.includes("snow") || normalized.includes("ski")) {
-      inferred.add("snow-play");
-    }
-  }
-
-  return [...inferred];
-}
-
-function normalizeText(value: string) {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+function readStringArray(value: unknown) {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
 }
 
 function getFirstValue(value: string | string[] | undefined) {

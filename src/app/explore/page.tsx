@@ -12,6 +12,7 @@ import {
   labelTripLength,
   rankingContextFromPlanning,
   toPlanningQueryString,
+  withPlanningQuery,
 } from "@/lib/planning";
 
 type PageProps = {
@@ -263,6 +264,7 @@ export default async function ExplorePage({ searchParams }: PageProps) {
               key={destination.slug}
               destination={destination}
               origin={planningState.origin}
+              href={withPlanningQuery(`/destinations/${destination.slug}`, planningState)}
             />
           ))}
         </div>

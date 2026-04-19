@@ -3,15 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getUserPreferences } from "@/lib/account";
-import {
-  labelDrivingTolerance,
-  labelGroupProfile,
-  labelInterest,
-  labelLodgingStyle,
-  labelOrigin,
-  getPlanningState,
-  toPlanningQueryString,
-} from "@/lib/planning";
+import { getPlanningState, toPlanningQueryString } from "@/lib/planning";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
@@ -40,11 +32,11 @@ export async function completeOnboardingAction(formData: FormData) {
       const { preferences } = await getUserPreferences();
       const payload = {
         user_id: user.id,
-        origin_city: labelOrigin(planningState.origin),
-        driving_tolerance: labelDrivingTolerance(planningState.drivingTolerance),
-        favorite_activities: planningState.interests.map(labelInterest),
-        group_default: labelGroupProfile(planningState.groupProfile),
-        lodging_preference: labelLodgingStyle(planningState.lodgingStyle),
+        origin_city: planningState.origin,
+        driving_tolerance: planningState.drivingTolerance,
+        favorite_activities: planningState.interests,
+        group_default: planningState.groupProfile,
+        lodging_preference: planningState.lodgingStyle,
         avoidances: preferences.avoidances,
         updated_at: new Date().toISOString(),
       };

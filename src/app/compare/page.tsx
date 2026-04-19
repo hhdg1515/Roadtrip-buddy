@@ -14,6 +14,7 @@ import {
   labelOrigin,
   labelTripLength,
   toPlanningQueryString,
+  withPlanningQuery,
 } from "@/lib/planning";
 
 type PageProps = {
@@ -101,7 +102,10 @@ export default async function ComparePage({ searchParams }: PageProps) {
               return (
                 <tr key={destination.slug} className="align-top">
                   <td className="p-3">
-                    <Link href={`/destinations/${destination.slug}`} className="font-semibold hover:text-ocean">
+                    <Link
+                      href={withPlanningQuery(`/destinations/${destination.slug}`, planningState)}
+                      className="font-semibold hover:text-ocean"
+                    >
                       {destination.name}
                     </Link>
                     <p className="text-xs text-muted">Rank {index + 1} · {destination.region}</p>
@@ -132,7 +136,7 @@ export default async function ComparePage({ searchParams }: PageProps) {
                   <td className="p-3 text-muted">{destination.lodging.bestBase}</td>
                   <td className="p-3">
                     <Link
-                      href={`/destinations/${destination.slug}?${planQueryString}`}
+                      href={withPlanningQuery(`/destinations/${destination.slug}`, planningState)}
                       className={buttonVariants({ variant: index === 0 ? "primary" : "secondary", size: "sm" })}
                     >
                       Open
