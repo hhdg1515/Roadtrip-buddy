@@ -1,0 +1,83 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgba(247, 244, 238, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(26, 22, 18, 0.08);
+}
+
+.inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 22px 52px;
+  max-width: 100%;
+  font-family: var(--font-body), "DM Sans", sans-serif;
+}
+
+.logo {
+  font-family: var(--font-display), "Cormorant Garamond", serif;
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #1a1612;
+  text-decoration: none;
+}
+
+.links {
+  display: flex;
+  gap: 40px;
+  list-style: none;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+}
+
+.link {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #1a1612;
+  text-decoration: none;
+  font-weight: 400;
+  opacity: 0.45;
+  transition: opacity 0.25s;
+}
+
+.link:hover,
+.linkActive {
+  opacity: 1;
+}
+
+.cta {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 9px 20px;
+  border: 1px solid rgba(26, 22, 18, 0.25);
+  border-radius: 2px;
+  color: #1a1612;
+  text-decoration: none;
+  font-weight: 400;
+  opacity: 0.75;
+  transition: opacity 0.25s, background 0.25s;
+}
+
+.cta:hover {
+  opacity: 1;
+  background: rgba(26, 22, 18, 0.05);
+}
+
+@media (max-width: 720px) {
+  .inner {
+    padding: 18px 24px;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .links {
+    gap: 22px;
+  }
+}

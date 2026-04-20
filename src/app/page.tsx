@@ -1,22 +1,15 @@
 import Link from "next/link";
+import { CaliforniaHero } from "@/components/home/california-hero";
 import { DestinationCard } from "@/components/home/destination-card";
-import { NowPlanningControls } from "@/components/home/now-planning-controls";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { FitScoreBadge } from "@/components/ui/fit-score-badge";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { getUserPreferences } from "@/lib/account";
 import { getRankedDestinations } from "@/lib/data/repository";
-import {
-  cautionList,
-  currentWindowLabel,
-  seasonalCollections,
-} from "@/lib/data/openseason";
+import { cautionList, seasonalCollections } from "@/lib/data/openseason";
 import {
   getPlanningState,
-  labelGroupProfile,
-  labelOrigin,
-  labelTripLength,
   toComparisonQueryString,
   toPlanningQueryString,
   withPlanningQuery,
@@ -29,11 +22,10 @@ export default async function Home({
 }: {
   searchParams?: Promise<SearchParams>;
 }) {
-  const { preferences, user } = await getUserPreferences();
+  const { preferences } = await getUserPreferences();
   const resolvedSearchParams = (await searchParams) ?? {};
   const planningState = getPlanningState(resolvedSearchParams, preferences);
   const queryString = toPlanningQueryString(planningState);
-  const hasSavedDefaults = Boolean(user && preferences.updatedAt);
   const recommendations = await getRankedDestinations(planningState.origin, planningState.tripLength, {
     startDate: planningState.startDate,
     drivingTolerance: planningState.drivingTolerance,
@@ -55,47 +47,15 @@ export default async function Home({
   );
 
   return (
-    <div className="space-y-12 py-8 sm:py-10">
-      <section className="space-y-6">
-        <div className="grid gap-8 lg:grid-cols-[1.3fr_0.7fr] lg:items-start">
-          <div className="space-y-5">
-            <p className="text-xs text-muted">{currentWindowLabel}</p>
-            <h1 className="display-title max-w-3xl text-4xl font-semibold leading-[1.05] sm:text-5xl">
-              California road trips, ranked for what&rsquo;s actually in season this week.
-            </h1>
-            <div className="flex flex-wrap gap-2">
-              <Link
-                href={hasSavedDefaults ? `/plan?${queryString}` : "/onboarding"}
-                className={buttonVariants({ variant: "primary" })}
-              >
-                {hasSavedDefaults ? "Refine brief" : "Start onboarding"}
-              </Link>
-              <Link
-                href={withPlanningQuery(
-                  `/destinations/${topRecommendations[0]?.slug ?? "big-sur-carmel"}`,
-                  planningState,
-                )}
-                className={buttonVariants({ variant: "secondary" })}
-              >
-                Best current pick
-              </Link>
-            </div>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <p className="text-xs text-muted">Current brief</p>
-              <h2 className="text-lg font-semibold">
-                {labelOrigin(planningState.origin)} · {labelTripLength(planningState.tripLength).toLowerCase()} · {labelGroupProfile(planningState.groupProfile).toLowerCase()}
-              </h2>
-            </CardHeader>
-            <CardBody>
-              <NowPlanningControls state={planningState} />
-            </CardBody>
-          </Card>
-        </div>
+    <>
+      <section
+        className="relative mb-12"
+        style={{ width: "100vw", marginLeft: "calc(50% - 50vw)", marginRight: "calc(50% - 50vw)" }}
+      >
+        <CaliforniaHero planQueryString={queryString} />
       </section>
 
+      <div className="space-y-12 pb-2">
       <section className="space-y-6">
         <SectionHeading
           eyebrow="Now"
@@ -206,6 +166,7 @@ export default async function Home({
           </CardBody>
         </Card>
       </section>
-    </div>
+      </div>
+    </>
   );
 }

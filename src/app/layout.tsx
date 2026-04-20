@@ -1,17 +1,20 @@
 import type { Metadata } from "next";
-import { Newsreader, Space_Grotesk } from "next/font/google";
+import { Cormorant_Garamond, DM_Sans } from "next/font/google";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteNav } from "@/components/layout/site-nav";
 import "./globals.css";
 
-const bodyFont = Space_Grotesk({
+const bodyFont = DM_Sans({
   variable: "--font-body",
   subsets: ["latin"],
+  weight: ["300", "400", "500"],
 });
 
-const displayFont = Newsreader({
+const displayFont = Cormorant_Garamond({
   variable: "--font-display",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
+  style: ["normal", "italic"],
 });
 
 export const metadata: Metadata = {

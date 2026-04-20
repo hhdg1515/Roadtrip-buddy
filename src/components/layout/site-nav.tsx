@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useMemo } from "react";
 import { cn } from "@/lib/utils";
+import styles from "./site-nav.module.css";
 
 const PLANNING_KEYS = [
   "origin",
@@ -19,17 +20,15 @@ const PLANNING_KEYS = [
 ] as const;
 
 const navItems = [
-  { href: "/", label: "Now" },
   { href: "/explore", label: "Explore" },
   { href: "/plan", label: "Plan" },
-  { href: "/saved", label: "Saved" },
-  { href: "/profile", label: "Profile" },
+  { href: "/saved", label: "Journal" },
 ];
 
 export function SiteNav() {
   return (
-    <header className="sticky top-0 z-40 bg-background/90 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-10">
+    <header className={styles.header}>
+      <div className={styles.inner}>
         <Suspense fallback={<NavShell suffix="" />}>
           <NavShellWithParams />
         </Suspense>
@@ -63,35 +62,32 @@ function NavShell({ suffix }: Readonly<{ suffix: string }>) {
 
   return (
     <>
-      <Link
-        href={`/${suffix}`}
-        aria-label="OpenSeason home"
-        className="flex items-center gap-2"
-      >
-        <span className="text-lg font-semibold tracking-tight">OpenSeason</span>
+      <Link href={`/${suffix}`} aria-label="OpenSeason home" className={styles.logo}>
+        OpenSeason
       </Link>
 
-      <nav aria-label="Primary" className="flex flex-wrap gap-1">
-        {navItems.map((item) => {
-          const isActive =
-            item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
-
-          return (
-            <Link
-              key={item.href}
-              href={`${item.href}${suffix}`}
-              aria-current={isActive ? "page" : undefined}
-              className={cn(
-                "inline-flex h-9 items-center justify-center rounded-md px-3 text-sm font-medium transition-colors",
-                isActive
-                  ? "text-ocean"
-                  : "text-muted hover:text-foreground",
-              )}
-            >
-              {item.label}
+      <nav aria-label="Primary">
+        <ul className={styles.links}>
+          {navItems.map((item) => {
+            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+            return (
+              <li key={item.href}>
+                <Link
+                  href={`${item.href}${suffix}`}
+                  aria-current={isActive ? "page" : undefined}
+                  className={cn(styles.link, isActive && styles.linkActive)}
+                >
+                  {item.label}
+                </Link>
+              </li>
+            );
+          })}
+          <li>
+            <Link href={`/profile${suffix}`} className={styles.cta}>
+              Sign in
             </Link>
-          );
-        })}
+          </li>
+        </ul>
       </nav>
     </>
   );
