@@ -6,7 +6,7 @@ import { Suspense, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import styles from "./site-nav.module.css";
 
-const PLANNING_KEYS = [
+const PERSISTED_QUERY_KEYS = [
   "origin",
   "tripLength",
   "startDate",
@@ -17,6 +17,7 @@ const PLANNING_KEYS = [
   "lodgingStyle",
   "interestMode",
   "interests",
+  "slugs",
 ] as const;
 
 const navItems = [
@@ -42,7 +43,7 @@ function NavShellWithParams() {
 
   const suffix = useMemo(() => {
     const next = new URLSearchParams();
-    for (const key of PLANNING_KEYS) {
+    for (const key of PERSISTED_QUERY_KEYS) {
       const values = searchParams.getAll(key);
       for (const value of values) {
         if (value) {

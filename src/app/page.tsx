@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { CaliforniaHero } from "@/components/home/california-hero";
-import { DestinationCard } from "@/components/home/destination-card";
+import { DestinationGrid } from "@/components/destinations/destination-grid";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { FitScoreBadge } from "@/components/ui/fit-score-badge";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { getUserPreferences } from "@/lib/account";
 import { getRankedDestinations } from "@/lib/data/repository";
-import { cautionList, seasonalCollections } from "@/lib/data/openseason";
+import { cautionList } from "@/lib/data/openseason";
 import {
   getPlanningState,
   toComparisonQueryString,
@@ -42,9 +42,6 @@ export default async function Home({
     planningState,
     comparisonCandidates.map((destination) => destination.slug),
   );
-  const destinationLookup = new Map(
-    recommendations.map((destination) => [destination.slug, destination]),
-  );
 
   return (
     <>
@@ -62,45 +59,20 @@ export default async function Home({
           title="Ranked picks this week"
           description="Already filtered by season, weather, drive burden, group fit, and Plan B quality."
         />
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {topRecommendations.map((destination) => (
-            <DestinationCard
-              key={destination.slug}
-              destination={destination}
-              origin={planningState.origin}
-              href={withPlanningQuery(`/destinations/${destination.slug}`, planningState)}
-            />
-          ))}
-        </div>
-      </section>
-
-      <section className="space-y-6">
-        <SectionHeading
-          eyebrow="Peaking now"
-          title="Seasonal collections"
+        <DestinationGrid
+          destinations={topRecommendations}
+          origin={planningState.origin}
+          planningState={planningState}
+          className="grid gap-4 md:grid-cols-2"
+          enablePeek
         />
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          {seasonalCollections.map((collection) => (
-            <Card key={collection.name}>
-              <CardBody className="space-y-2 pt-5">
-                <h3 className="font-semibold">{collection.name}</h3>
-                <p className="text-sm text-muted">
-                  {collection.slugs
-                    .map((slug) => destinationLookup.get(slug)?.name)
-                    .filter(Boolean)
-                    .join(" · ")}
-                </p>
-              </CardBody>
-            </Card>
-          ))}
-        </div>
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
         <Card>
           <CardHeader>
-            <p className="text-xs text-muted">Comparison · leader vs. runners-up</p>
-            <h2 className="text-lg font-semibold">Why the leader wins</h2>
+            <p className="text-xs text-muted">Top contenders · leader vs. runners-up</p>
+            <h2 className="text-lg font-semibold">Why these float to the top</h2>
           </CardHeader>
           <CardBody>
             <div className="overflow-x-auto">
@@ -143,7 +115,7 @@ export default async function Home({
                 href={`/compare?${comparisonQueryString}`}
                 className={buttonVariants({ variant: "secondary", size: "sm" })}
               >
-                Full comparison
+                Review top contenders
               </Link>
             </div>
           </CardBody>

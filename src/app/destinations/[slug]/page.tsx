@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DestinationHeroImage } from "@/components/destinations/destination-hero-image";
 import { DestinationMapCard } from "@/components/destinations/destination-map-card";
+import { SelectedRouteMap } from "@/components/destinations/selected-route-map";
 import { ActivityChip, inferActivityKind } from "@/components/ui/activity-chip";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -190,6 +191,13 @@ export default async function DestinationPage({ params, searchParams }: PageProp
       </section>
 
       <section className="grid gap-4 lg:grid-cols-[1fr_1fr]">
+        <SelectedRouteMap
+          destination={destination}
+          origin={planningState.origin}
+          tripLength={planningState.tripLength}
+          tripFormat={planningState.tripFormat}
+          drivingTolerance={planningState.drivingTolerance}
+        />
         <DestinationHeroImage
           slug={destination.slug}
           name={destination.name}
@@ -197,7 +205,10 @@ export default async function DestinationPage({ params, searchParams }: PageProp
           summary={destination.summary}
           priority
         />
-        <DestinationMapCard destination={destination} />
+      </section>
+
+      <section>
+        <DestinationMapCard destination={destination} focusOrigin={planningState.origin} />
       </section>
 
       <section className="grid gap-4 lg:grid-cols-[1fr_1fr]">
@@ -286,9 +297,9 @@ export default async function DestinationPage({ params, searchParams }: PageProp
           title="Why it lands here"
           defaultOpen
         >
-          <div className="grid gap-2 md:grid-cols-2">
+          <div className="grid gap-3 md:grid-cols-2">
             {scoreRows.map(([label, score]) => (
-              <ScoreBar key={label} label={label} score={score} />
+              <ScoreBreakdownCard key={label} label={label} score={score} />
             ))}
           </div>
         </DetailSection>
@@ -443,32 +454,98 @@ function DetailSection({
   );
 }
 
-function ScoreBar({
+function ScoreBreakdownCard({
   label,
   score,
 }: Readonly<{
   label: string;
   score: number;
 }>) {
+  const clamped = Math.max(0, Math.min(100, score));
+  const segments = 5;
+  const activeSegments = Math.round((clamped / 100) * segments);
+  const tone = scoreBreakdownTone(clamped);
+
   return (
-    <div className="space-y-1.5">
-      <div className="flex items-center justify-between gap-4 text-sm">
-        <span className="text-muted">{label}</span>
-        <span className="font-semibold tabular-nums">{score}</span>
+    <div className="rounded-[18px] border border-[rgba(26,22,18,0.06)] bg-[linear-gradient(180deg,rgba(250,247,241,0.98)_0%,rgba(247,242,234,0.92)_100%)] p-4">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-foreground">{label}</p>
+          <p
+            className="mt-1 text-[10px] uppercase text-[#9a8878]"
+            style={{ letterSpacing: "0.16em", fontWeight: 500 }}
+          >
+            {tone.label}
+          </p>
+        </div>
+        <div className="rounded-full bg-white/80 px-2.5 py-1 text-sm font-semibold tabular-nums text-[#1e1610] shadow-[0_1px_0_rgba(26,22,18,0.06)]">
+          {clamped}
+        </div>
       </div>
       <div
-        className="h-1.5 rounded-full bg-muted-soft"
+        className="mt-3 flex gap-1.5"
         role="progressbar"
         aria-label={`${label} score`}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-valuenow={score}
+        aria-valuenow={clamped}
       >
-        <div
-          className="h-1.5 rounded-full bg-ocean"
-          style={{ width: `${score}%` }}
-        />
+        {Array.from({ length: segments }, (_, index) => (
+          <span
+            key={`${label}-${index}`}
+            className="h-2.5 flex-1 rounded-full transition"
+            style={{
+              backgroundColor:
+                index < activeSegments ? tone.fill : "rgba(26,22,18,0.08)",
+              boxShadow:
+                index < activeSegments ? "inset 0 1px 0 rgba(255,255,255,0.28)" : "none",
+            }}
+          />
+        ))}
+      </div>
+      <div className="mt-2 text-[12px] leading-5 text-[#6b5c44]">
+        {tone.note}
       </div>
     </div>
   );
+}
+
+function scoreBreakdownTone(score: number) {
+  if (score >= 88) {
+    return {
+      label: "Excellent",
+      fill: "#335c50",
+      note: "A clear strength for this destination right now.",
+    };
+  }
+
+  if (score >= 76) {
+    return {
+      label: "Strong",
+      fill: "#4d7264",
+      note: "Comfortably supports the trip without much compromise.",
+    };
+  }
+
+  if (score >= 64) {
+    return {
+      label: "Solid",
+      fill: "#9b7656",
+      note: "Usable, but not the strongest part of the overall fit.",
+    };
+  }
+
+  if (score >= 50) {
+    return {
+      label: "Mixed",
+      fill: "#b28f72",
+      note: "Worth noting before you commit to this destination.",
+    };
+  }
+
+  return {
+    label: "Weak",
+    fill: "#9a8878",
+    note: "One of the weaker signals in the current trip setup.",
+  };
 }

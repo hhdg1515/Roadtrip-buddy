@@ -98,7 +98,6 @@ export default async function SavedPage({ searchParams }: PageProps) {
                 </div>
               </CardHeader>
               <CardBody className="space-y-4 text-sm leading-6">
-                {trip.currentVerdict ? <p>{trip.currentVerdict}</p> : null}
                 <div>
                   <p className="text-xs text-muted">Current risk</p>
                   <p className="mt-0.5 text-muted">

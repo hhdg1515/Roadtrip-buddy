@@ -11,9 +11,9 @@ export default function CompareError({
   return (
     <RouteErrorState
       reset={reset}
-      eyebrow="Comparison failed"
-      title="The shortlist comparison did not load."
-      description="Try again. If this route keeps failing, the compare deck should be treated as a real app error."
+      eyebrow="Shortlist failed"
+      title="The shortlist review did not load."
+      description="Try again. If this route keeps failing, the shortlist review should be treated as a real app error."
     />
   );
 }

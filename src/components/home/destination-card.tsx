@@ -1,15 +1,8 @@
 import Link from "next/link";
 import { DestinationHeroImage } from "@/components/destinations/destination-hero-image";
-import { Card, CardBody, CardHeader } from "@/components/ui/card";
-import { FitScoreBadge } from "@/components/ui/fit-score-badge";
-import { RiskBadge } from "@/components/ui/risk-badge";
+import { Card } from "@/components/ui/card";
 import type { Destination, Origin } from "@/lib/data/openseason";
 import { getDestinationDecisionStatus } from "@/lib/decision-layer";
-import {
-  formatUpdatedAt,
-  formatWeatherMetrics,
-  getPrimaryAlert,
-} from "@/lib/live-conditions";
 
 export function DestinationCard({
   destination,
@@ -20,78 +13,50 @@ export function DestinationCard({
   origin: Origin;
   href?: string;
 }>) {
-  const weatherMetrics = formatWeatherMetrics(destination.liveWeather).slice(0, 3);
-  const primaryAlert = getPrimaryAlert(destination.activeAlerts);
   const decision = getDestinationDecisionStatus(destination);
-  const topRisk = destination.riskBadges[0];
+  const dotColor = dotColorFor(decision.level, destination.fitScore);
 
   return (
-    <Link
-      href={href}
-      className="group block h-full rounded-lg transition hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean/40"
-    >
-      <Card className="flex h-full flex-col">
-        <CardHeader className="space-y-3">
-          <DestinationHeroImage slug={destination.slug} name={destination.name} />
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0 space-y-1">
-              <p className="text-xs text-muted">{destination.region}</p>
-              <h3 className="display-title text-2xl font-semibold leading-tight">
-                {destination.name}
-              </h3>
-            </div>
-            <div className="shrink-0 text-right">
-              <p className="text-3xl font-semibold tabular-nums">{destination.fitScore}</p>
-              <FitScoreBadge score={destination.fitScore} showScore={false} size="sm" className="mt-1" />
-            </div>
-          </div>
+    <Card className="flex h-full flex-col overflow-hidden">
+      <Link
+        href={href}
+        className="group flex flex-1 flex-col transition hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(136,86,208,0.35)]"
+      >
+        <DestinationHeroImage slug={destination.slug} name={destination.name} />
 
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
-            <span>{destination.driveHours[origin]}h from {originLabel(origin)}</span>
-            <span>·</span>
-            <span>{destination.bestActivity}</span>
-            {topRisk ? (
-              <>
-                <span>·</span>
-                <RiskBadge label={topRisk} />
-              </>
-            ) : null}
-          </div>
-        </CardHeader>
+        <div className="flex flex-1 flex-col gap-2 px-5 pt-4 pb-5">
+          <p className="eyebrow">{destination.region}</p>
 
-        <CardBody className="flex flex-1 flex-col gap-4">
-          {weatherMetrics.length > 0 || primaryAlert ? (
-            <div className="space-y-1 text-sm text-muted">
-              {weatherMetrics.length > 0 ? (
-                <p className="text-foreground">{weatherMetrics.join(" · ")}</p>
-              ) : null}
-              {primaryAlert ? (
-                <p className="text-danger">⚠ {primaryAlert.title}</p>
-              ) : null}
-              {destination.updatedAt ? (
-                <p className="text-xs">Updated {formatUpdatedAt(destination.updatedAt)}</p>
-              ) : null}
-            </div>
-          ) : null}
+          <h3
+            className="display-title text-[26px] leading-[1.1] text-foreground"
+            style={{ fontWeight: 500 }}
+          >
+            {destination.name}
+          </h3>
 
-          <div className="space-y-2 text-sm leading-6">
-            <p className="text-foreground">
-              <span className="text-xs text-muted">Why now · </span>
-              {destination.whyNow}
-            </p>
-            <p className="text-muted">
-              <span className="text-xs">Watch out · </span>
-              {destination.mainWarning}
-            </p>
-          </div>
-
-          {decision.level === "block" ? (
-            <p className="text-sm text-danger">{decision.headline}</p>
-          ) : null}
-        </CardBody>
-      </Card>
-    </Link>
+          <p className="flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-[#9a8878]">
+            <span
+              aria-hidden
+              className="h-[7px] w-[7px] shrink-0 rounded-full"
+              style={{ backgroundColor: dotColor }}
+            />
+            <span>
+              {destination.driveHours[origin]}h from {originLabel(origin)} ·{" "}
+              {destination.bestActivity}
+            </span>
+          </p>
+        </div>
+      </Link>
+    </Card>
   );
+}
+
+function dotColorFor(level: "block" | "warn" | "inform", fitScore: number): string {
+  if (level === "block") return "#7a2e20";
+  if (level === "warn") return "#8a5a32";
+  if (fitScore >= 85) return "#335c50";
+  if (fitScore >= 62) return "#b08060";
+  return "#9a8878";
 }
 
 function originLabel(origin: Origin) {

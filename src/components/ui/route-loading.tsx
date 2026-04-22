@@ -17,7 +17,7 @@ export function RouteLoading({
         <div className="h-3 w-16 rounded bg-muted-soft" />
         <div className="h-8 max-w-xl rounded-md bg-muted-soft" />
         <p className="sr-only">
-          {title}. {description}
+          {eyebrow}. {title}. {description}
         </p>
       </div>
 

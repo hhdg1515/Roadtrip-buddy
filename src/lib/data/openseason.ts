@@ -173,26 +173,72 @@ export const interestOptions: Array<{ id: InterestKey; label: string }> = [
   { id: "snow-play", label: "Snow interest" },
 ];
 
-export const seasonalCollections = [
+export type SeasonalCollection = {
+  id: string;
+  name: string;
+  months: string;
+  hook: string;
+  description: string;
+  slugs: string[];
+  coverSlug: string;
+  brief: {
+    tripFormat?: TripFormat;
+    interests?: InterestKey[];
+  };
+};
+
+export const seasonalCollections: SeasonalCollection[] = [
   {
+    id: "spring-sierra",
     name: "Spring Sierra",
+    months: "Apr – Jun",
+    hook: "Granite walls and waterfalls, before the high passes melt out.",
     description: "Lower-elevation Sierra icons are working now, but elevation discipline still matters.",
     slugs: ["yosemite", "sequoia-kings", "tahoe", "big-bear"],
+    coverSlug: "yosemite",
+    brief: {
+      tripFormat: "weekend-stay",
+      interests: ["scenic-views", "moderate-hiking", "photography"],
+    },
   },
   {
+    id: "coast",
     name: "Coast",
+    months: "Year-round",
+    hook: "Low-friction cliffs and food towns for mixed groups.",
     description: "The coast is still the cleanest low-friction answer for mixed groups and short trips.",
     slugs: ["big-sur-carmel", "point-reyes", "sonoma-coast", "point-loma-cabrillo"],
+    coverSlug: "big-sur-carmel",
+    brief: {
+      tripFormat: "weekend-stay",
+      interests: ["scenic-views", "easy-walks", "good-food"],
+    },
   },
   {
+    id: "desert",
     name: "Desert",
+    months: "Feb – Apr",
+    hook: "Last comfortable window before the heat arrives.",
     description: "The last comfortable desert window is open before the real heat arrives.",
     slugs: ["joshua-tree", "death-valley", "anza-borrego"],
+    coverSlug: "joshua-tree",
+    brief: {
+      tripFormat: "weekend-stay",
+      interests: ["scenic-views", "photography", "easy-walks"],
+    },
   },
   {
+    id: "north-state",
     name: "North State",
+    months: "May – Oct",
+    hook: "Far-north forest and volcano country, once snow clears.",
     description: "Far-north forest and volcano trips are emerging, but shoulder-season access still shapes them.",
     slugs: ["mount-shasta", "lassen", "redwoods", "klamath"],
+    coverSlug: "mount-shasta",
+    brief: {
+      tripFormat: "weekend-stay",
+      interests: ["scenic-views", "moderate-hiking"],
+    },
   },
 ];
 
@@ -2262,6 +2308,501 @@ const destinationSeeds: DestinationSeed[] = [
         "Keep the road day simple.",
         "Arrive home with the desert still feeling like a good idea.",
         "The closeout should protect the trip's overall comfort.",
+      ),
+    ],
+  },
+  {
+    slug: "mono-lake",
+    name: "Mono Lake",
+    region: "Eastern Sierra",
+    summary:
+      "Otherworldly tufa shoreline and 395 corridor scenery — works as a Mammoth add-on or a standalone photography weekend.",
+    currentVerdict:
+      "Strong shoulder-season pick right now. The lake is open year-round but mid-April hits the sweet spot before summer crowds and before passes melt out.",
+    whyNow:
+      "Tufa towers photograph well in low spring light, 395 is clear, and Lee Vining's food scene is awake before the Tioga Pass surge.",
+    mainWarning:
+      "This is a long drive for a small destination. Pair it with Mammoth or a 395 loop, or the math feels thin for a standalone weekend.",
+    bestActivity: "Tufa shoreline + 395 scenic drive",
+    seasonalWindow: "Spring shoulder, summer paired with Tioga, fall golden",
+    palette: ["#2d3a44", "#5d7785", "#e0d0a8"],
+    driveHours: buildDriveHours(6.4, 5.8, 7.5, 5.2),
+    idealTripLengths: ["3-days", "5-days"],
+    collections: ["Eastern Sierra", "Photography"],
+    tags: ["Photography", "Scenic drive", "Easy walks", "Non-hiker friendly"],
+    riskBadges: ["Long drive", "Wind exposure"],
+    breakdown: buildBreakdown(82, 76, 74, 58, 80, 72, 70, 76),
+    activities: [
+      buildActivity(
+        "South Tufa boardwalk + shoreline",
+        "Very easy",
+        "Golden hour",
+        "The main reason to come. Low-effort walk, iconic payoff.",
+      ),
+      buildActivity(
+        "Panum Crater rim loop",
+        "Easy",
+        "Morning",
+        "Short volcanic crater walk that adds scale to the lake view.",
+      ),
+      buildActivity(
+        "395 scenic drive with pull-offs",
+        "Very easy",
+        "Any time",
+        "Turns transit time into content. Mono Vista, Conway Summit, June Lake loop.",
+      ),
+    ],
+    avoid: [
+      "Treating Mono Lake as a full weekend by itself without a Mammoth or June Lake anchor.",
+      "Skipping Lee Vining food — the town is small but the Mobil Mart / Whoa Nellie Deli is worth the stop.",
+      "Wading into the lake without understanding the alkali chemistry.",
+    ],
+    suggestedStops: [
+      "South Tufa",
+      "Mono Lake County Park",
+      "Panum Crater",
+      "June Lake Loop",
+      "Lee Vining overlook",
+    ],
+    foodSupport: buildFoodSupport(
+      "Lee Vining",
+      ["Latte Da Coffee Cafe", "Mobil Mart / Whoa Nellie Deli"],
+      ["Whoa Nellie Deli", "June Lake fallback"],
+      ["Mono Lake Committee visitor center", "Lakefront benches"],
+      "Lee Vining is small. Bring patience for limited hours; June Lake expands the food radius.",
+    ),
+    lodging: buildLodging(
+      "Lee Vining",
+      "Closest base to South Tufa and the visitor center",
+      "June Lake",
+      "June Lake has more cabin inventory and a better food cluster, with ~20 minutes added drive.",
+    ),
+    planB: buildPlanB(
+      "If wind, dust, or a spring storm makes the shoreline unpleasant",
+      "Shift south to June Lake Loop and down into Mammoth town time.",
+      "The 395 corridor still carries the trip even if the tufa itself gets skipped.",
+      "About an hour of transit moved from lake time into town time.",
+    ),
+    itinerary: [
+      buildItineraryDay(
+        "Day 1",
+        "Drive the 395 corridor with scenic pull-offs instead of pushing through.",
+        "Arrive Lee Vining midday and grab a reset lunch.",
+        "South Tufa in late afternoon to catch golden hour.",
+        "Dinner at Whoa Nellie Deli, early sleep.",
+        "Day one is mostly the drive — respect that.",
+      ),
+      buildItineraryDay(
+        "Day 2",
+        "Panum Crater rim walk before wind picks up.",
+        "June Lake Loop scenic drive with town stops.",
+        "Second tufa visit or Mono Lake County Park boardwalk.",
+        "Return to Lee Vining for sunset over the lake.",
+        "This is the payoff day. Keep it unhurried.",
+      ),
+      buildItineraryDay(
+        "Day 3",
+        "Sunrise stop at the lake if energy allows.",
+        "Coffee in Lee Vining, then start 395 south or west.",
+        "Optional Mammoth stop for lunch and hot springs framing.",
+        "Home with a trip that feels bigger than its miles.",
+        "Paired with Mammoth, this becomes a complete Eastern Sierra loop.",
+      ),
+    ],
+  },
+  {
+    slug: "mt-whitney",
+    name: "Mt Whitney + Lone Pine",
+    region: "Eastern Sierra",
+    summary:
+      "Highest peak in the contiguous US, Alabama Hills film-country below — the trailhead lottery gates the summit, but the base offers plenty.",
+    currentVerdict:
+      "Useful right now as an Alabama Hills + Whitney Portal scenic weekend. Not the season to summit — permits and snow make that a July+ decision.",
+    whyNow:
+      "Alabama Hills is in its best light window, Whitney Portal Road opens at the lower elevations, and Lone Pine town support is active before summer.",
+    mainWarning:
+      "Do not confuse a Whitney Portal scenic trip with a summit attempt. Permits are lotteried and the peak is still snowbound in April.",
+    bestActivity: "Alabama Hills + Whitney Portal scenic drive",
+    seasonalWindow: "Spring shoulder for base, summer for summit, fall for photography",
+    palette: ["#3d342b", "#7a6855", "#c99b6b"],
+    driveHours: buildDriveHours(7.1, 3.8, 5.6, 6.4),
+    idealTripLengths: ["3-days", "5-days"],
+    collections: ["Eastern Sierra", "Photography"],
+    tags: ["Photography", "Scenic drive", "Moderate hiking", "Film history"],
+    riskBadges: ["Long drive from Bay", "Snow risk at elevation"],
+    breakdown: buildBreakdown(78, 74, 76, 62, 78, 70, 74, 78),
+    activities: [
+      buildActivity(
+        "Alabama Hills Movie Road + Mobius Arch",
+        "Very easy",
+        "Sunrise or golden hour",
+        "Iconic rock formations with direct Whitney backdrop. Non-hiker friendly.",
+      ),
+      buildActivity(
+        "Whitney Portal Road drive to the trailhead",
+        "Easy",
+        "Morning",
+        "Dramatic elevation change with the portal store and waterfall at the top.",
+      ),
+      buildActivity(
+        "Lone Pine Lake day hike (permit-free)",
+        "Moderate",
+        "Morning",
+        "First 2.5 miles of the Whitney trail — no permit required, strong payoff.",
+      ),
+    ],
+    avoid: [
+      "Attempting Whitney summit without a permit or out-of-season experience.",
+      "Assuming every pull-off has cell service — plan offline.",
+      "Treating Lone Pine as a food destination. It's a base town, not a food town.",
+    ],
+    suggestedStops: [
+      "Mobius Arch loop",
+      "Movie Road",
+      "Whitney Portal Store",
+      "Museum of Western Film History",
+      "Manzanar National Historic Site",
+    ],
+    foodSupport: buildFoodSupport(
+      "Lone Pine",
+      ["Alabama Hills Cafe", "Lone Pine coffee stop"],
+      ["Seasons Restaurant", "Whitney Portal Store (seasonal)"],
+      ["Film history museum", "Alabama Hills BLM sunset drive"],
+      "Lone Pine is functional, not elegant. Bishop 60 miles north expands the food options.",
+    ),
+    lodging: buildLodging(
+      "Lone Pine",
+      "Closest town to both Alabama Hills and Whitney Portal Road",
+      "Bishop",
+      "Bishop is 60 miles north, bigger, with more food. Trades proximity for breadth.",
+    ),
+    planB: buildPlanB(
+      "If Whitney Portal Road has snow closures or winds are severe",
+      "Stay low in Alabama Hills, add Manzanar, and loop north to Bishop for food.",
+      "The film-country and 395 experience carries the weekend even without portal access.",
+      "Drops about 1-2 hours of elevation driving, adds equivalent low-desert scenic time.",
+    ),
+    itinerary: [
+      buildItineraryDay(
+        "Day 1",
+        "395 drive in with a Manzanar or Mojave stop.",
+        "Check into Lone Pine, reset lunch.",
+        "Alabama Hills golden hour — Movie Road + Mobius Arch.",
+        "Dinner in town, early sleep for sunrise.",
+        "Don't overpack day one — the light is the point.",
+      ),
+      buildItineraryDay(
+        "Day 2",
+        "Sunrise in Alabama Hills (second session if energy allows).",
+        "Whitney Portal Road drive up to the store.",
+        "Lone Pine Lake hike if conditions allow, or shorter Portal-area walk.",
+        "Return to town, sunset pass through Alabama Hills.",
+        "This is the main day. The elevation transitions are the story.",
+      ),
+      buildItineraryDay(
+        "Day 3",
+        "Coffee and one last scenic stop.",
+        "Drive north to Bishop for lunch, or south toward home.",
+        "Scenic 395 return with intentional stops.",
+        "Home with a trip that reads as more than a drive.",
+        "Consider pairing with Mono Lake for a full Eastern Sierra loop.",
+      ),
+    ],
+  },
+  {
+    slug: "mendocino",
+    name: "Mendocino + Fort Bragg",
+    region: "North Coast",
+    summary:
+      "Victorian coastal village with bluff trails, glass beach, and redwood parks 30 minutes inland — the north-coast answer to Carmel with less polish.",
+    currentVerdict:
+      "Strong pick right now. Spring wildflowers on the headlands, fog not yet established, and the town is awake before summer traffic.",
+    whyNow:
+      "Mendocino Headlands is peaking for bluff walks, Van Damme and Russian Gulch redwood parks are accessible, and Fort Bragg food is dependable.",
+    mainWarning:
+      "Highway 1 drive from the Bay takes longer than it looks — 3.5 hours via 128 is realistic, and late arrival costs you dinner windows.",
+    bestActivity: "Headlands bluff walks + coast village",
+    seasonalWindow: "Spring wildflowers, summer foggy, fall clear",
+    palette: ["#263340", "#3f6874", "#a8c4c0"],
+    driveHours: buildDriveHours(3.5, 8.6, 11.2, 4.1),
+    idealTripLengths: ["weekend", "3-days", "5-days"],
+    collections: ["Coast", "Non-hiker friendly", "Food + town"],
+    tags: ["Coast", "Cafe/town", "Easy walks", "Romantic", "Scenic drive"],
+    riskBadges: ["Highway 1 drive", "Fog risk"],
+    breakdown: buildBreakdown(86, 82, 84, 72, 78, 90, 88, 86),
+    activities: [
+      buildActivity(
+        "Mendocino Headlands bluff loop",
+        "Very easy",
+        "Late morning",
+        "Flat trail along the village bluffs with sea arches and wildflowers.",
+      ),
+      buildActivity(
+        "Russian Gulch waterfall + Fern Canyon",
+        "Easy to moderate",
+        "Afternoon",
+        "Short redwood-canyon walk with a 36-foot waterfall. Great contrast to the coast.",
+      ),
+      buildActivity(
+        "Glass Beach + Fort Bragg coastal trail",
+        "Very easy",
+        "Golden hour",
+        "Low-effort coastal walk with sea-glass history and food-town access.",
+      ),
+    ],
+    avoid: [
+      "Trying to do Mendocino as a same-day return — the drive eats the value.",
+      "Taking Highway 1 the whole way from Bay Area. 128 through Anderson Valley is faster and prettier.",
+      "Skipping Van Damme or Russian Gulch — they make the trip more than just a village visit.",
+    ],
+    suggestedStops: [
+      "Mendocino Headlands State Park",
+      "Russian Gulch State Park",
+      "Van Damme State Park",
+      "Glass Beach",
+      "Point Cabrillo Light Station",
+    ],
+    foodSupport: buildFoodSupport(
+      "Mendocino village + Fort Bragg",
+      ["Good Life Cafe", "GoodLife Bakery"],
+      ["Cafe Beaujolais", "Trillium Cafe", "Fort Bragg seafood spots"],
+      ["Dick's Place", "Coast bench stops", "Bookstore + wine bar loop"],
+      "Village is intimate and seasonal. Fort Bragg (10 min north) is the pragmatic food backup.",
+    ),
+    lodging: buildLodging(
+      "Mendocino village",
+      "Walkable headlands access, Victorian inns, full village mood",
+      "Fort Bragg",
+      "Fort Bragg has cheaper and broader inventory, but lacks the village atmosphere.",
+    ),
+    planB: buildPlanB(
+      "If fog settles in hard or coastal winds feel punishing",
+      "Shift inland to Anderson Valley wineries, Hendy Woods redwoods, and Boonville food.",
+      "The 128 corridor has enough structure to salvage a foggy coastal weekend.",
+      "Trades 1-2 coast hours for equivalent valley-and-redwood time.",
+    ),
+    itinerary: [
+      buildItineraryDay(
+        "Day 1",
+        "Leave Bay Area mid-morning via 101 + 128 through Anderson Valley.",
+        "Lunch in Boonville or Philo, then drop to the coast.",
+        "Arrive Mendocino, check in, headlands bluff loop at golden hour.",
+        "Dinner in the village.",
+        "The drive is the pre-show — don't rush it.",
+      ),
+      buildItineraryDay(
+        "Day 2",
+        "Breakfast at Good Life, then Russian Gulch waterfall walk.",
+        "Fort Bragg lunch + Glass Beach + coastal trail.",
+        "Return to village for bookstore/wine bar time.",
+        "Point Cabrillo sunset, dinner in town.",
+        "This is the full-coverage day — headlands, redwoods, food.",
+      ),
+      buildItineraryDay(
+        "Day 3",
+        "Slow village morning with a final headlands stop.",
+        "Drive south via Highway 1 (short segment) then 128 back to 101.",
+        "Anderson Valley wine stop if the group wants one more beat.",
+        "Home by dinner.",
+        "Day 3 intentionally lighter — the village is the rest.",
+      ),
+    ],
+  },
+  {
+    slug: "morro-rock",
+    name: "Morro Rock + Cayucos",
+    region: "Central Coast",
+    summary:
+      "Volcanic plug rising from a harbor town, Hearst Castle 40 min north, and Cayucos fish-and-chips — the Big Sur alternative when the highway isn't cooperating.",
+    currentVerdict:
+      "Underrated right now. When Highway 1 north of Big Sur is fragile, Morro Bay is the clean central-coast answer with its own identity.",
+    whyNow:
+      "Spring weather is stable, the harbor town is awake, and the drive from the Bay or LA is shorter than the Big Sur loop.",
+    mainWarning:
+      "This is a low-stakes trip. If your group expects dramatic cliffs and cinematic turnouts, Big Sur still wins. Morro Bay wins on ease, not drama.",
+    bestActivity: "Harbor town + Hearst Castle loop",
+    seasonalWindow: "Year-round with best light March-May and September-October",
+    palette: ["#2a3b40", "#527580", "#d4b28a"],
+    driveHours: buildDriveHours(3.8, 3.4, 5.6, 4.8),
+    idealTripLengths: ["weekend", "3-days"],
+    collections: ["Coast", "Non-hiker friendly", "Food + town"],
+    tags: ["Coast", "Cafe/town", "Easy walks", "Family-friendly", "Harbor"],
+    riskBadges: ["Wind exposure"],
+    breakdown: buildBreakdown(84, 86, 80, 84, 86, 88, 82, 88),
+    activities: [
+      buildActivity(
+        "Morro Rock harbor walk + embarcadero",
+        "Very easy",
+        "Late afternoon",
+        "Flat waterfront stroll with otters, sea lions, and fish-and-chip stops.",
+      ),
+      buildActivity(
+        "Hearst Castle tour + elephant seal colony",
+        "Easy",
+        "Midday",
+        "40 minutes north in San Simeon. Tour plus the Piedras Blancas seal colony.",
+      ),
+      buildActivity(
+        "Montana de Oro bluff trail",
+        "Easy to moderate",
+        "Morning",
+        "Uncrowded state park just south — cliffs, tide pools, fewer people than Big Sur.",
+      ),
+    ],
+    avoid: [
+      "Expecting Big Sur-scale drama. This trip is about ease, not grandeur.",
+      "Skipping Cayucos — it's the food-town anchor that makes the trip feel complete.",
+      "Booking Hearst Castle same-day — tours do sell out on weekends.",
+    ],
+    suggestedStops: [
+      "Morro Rock",
+      "Embarcadero waterfront",
+      "Montana de Oro State Park",
+      "Cayucos pier",
+      "Hearst Castle + Piedras Blancas",
+    ],
+    foodSupport: buildFoodSupport(
+      "Morro Bay + Cayucos",
+      ["Top Dog Coffee Bar (Cayucos)", "Kiteboarder's Cafe"],
+      ["Giovanni's Fish Market", "Schooners Wharf", "Ruddell's Smokehouse (Cayucos)"],
+      ["Embarcadero benches", "Cayucos pier walk", "Brown Butter Cookie Company"],
+      "Cayucos (10 min north) is the food heart. Morro Bay is the base. Use both.",
+    ),
+    lodging: buildLodging(
+      "Morro Bay embarcadero",
+      "Walk-to-water access, harbor views, family-friendly inventory",
+      "Cayucos",
+      "Cayucos has more charm and better food density, but smaller inventory.",
+    ),
+    planB: buildPlanB(
+      "If wind at the rock is punishing or marine layer collapses visibility",
+      "Shift inland to Paso Robles wine country, 30 minutes east.",
+      "Paso gives the group a completely different day without a real drive.",
+      "Zero added drive time. The pivot adds wineries instead of subtracting coast.",
+    ),
+    itinerary: [
+      buildItineraryDay(
+        "Day 1",
+        "Arrive midday via 101. Skip Highway 1 fragility on the way in.",
+        "Check in, lunch at Giovanni's on the embarcadero.",
+        "Harbor walk, Morro Rock approach, Cayucos for late afternoon.",
+        "Dinner at Ruddell's or Schooners.",
+        "Day 1 is intentionally short — the drive is easier than Big Sur's, use the saved time.",
+      ),
+      buildItineraryDay(
+        "Day 2",
+        "Early breakfast, then north to Hearst Castle (pre-booked tour).",
+        "Piedras Blancas elephant seal colony on the return.",
+        "Afternoon at Montana de Oro bluff trail.",
+        "Cayucos sunset pier walk + dinner.",
+        "This is the coverage day — castle, colony, cliffs, food.",
+      ),
+      buildItineraryDay(
+        "Day 3",
+        "Slow morning, coffee at Top Dog in Cayucos.",
+        "Optional Paso Robles wine stop or Montana de Oro return.",
+        "Home via 101.",
+        "Arrive with a trip that wasn't exhausting.",
+        "The value prop is low-friction central coast, not maximum density.",
+      ),
+    ],
+  },
+  {
+    slug: "mojave",
+    name: "Mojave National Preserve",
+    region: "Southern Desert",
+    summary:
+      "The emptier, quieter desert between Joshua Tree and Death Valley — Kelso Dunes, Joshua tree forests, lava tubes, and almost no crowds.",
+    currentVerdict:
+      "Last comfortable window. April works, May is the edge, June is out. Go now if you want desert solitude without Joshua Tree's crowds.",
+    whyNow:
+      "Temperatures are still workable, wildflowers linger in good years, and the preserve doesn't have Joshua Tree's weekend parking problem.",
+    mainWarning:
+      "Services are minimal. Gas up in Baker or Barstow, bring water, and don't assume cell coverage anywhere inside the preserve.",
+    bestActivity: "Kelso Dunes + Joshua tree forest solitude",
+    seasonalWindow: "November-April. Dangerous May through September.",
+    palette: ["#3d2f26", "#a8714a", "#e8c88a"],
+    driveHours: buildDriveHours(8.2, 2.8, 3.6, 7.4),
+    idealTripLengths: ["weekend", "3-days"],
+    collections: ["Desert", "Photography"],
+    tags: ["Desert", "Photography", "Scenic drive", "Easy walks", "Remote"],
+    riskBadges: ["Remote", "Limited services", "Heat risk late-April"],
+    breakdown: buildBreakdown(80, 74, 78, 68, 82, 72, 64, 74),
+    activities: [
+      buildActivity(
+        "Kelso Dunes trail",
+        "Moderate",
+        "Early morning or golden hour",
+        "600-foot dunes with booming sand. Main draw of the preserve.",
+      ),
+      buildActivity(
+        "Kelso Depot visitor center + Cima Dome drive",
+        "Very easy",
+        "Midday",
+        "Historic depot with exhibits, then the densest Joshua tree forest anywhere.",
+      ),
+      buildActivity(
+        "Lava Tube at Aiken Mine Road",
+        "Easy (rough road access)",
+        "Midday",
+        "Short underground walk with skylight beams. High-clearance vehicle recommended.",
+      ),
+    ],
+    avoid: [
+      "Treating this like Joshua Tree — the services and infrastructure are much thinner.",
+      "Attempting the Lava Tube road in a low-clearance sedan.",
+      "Traveling May through September without heat-emergency planning.",
+    ],
+    suggestedStops: [
+      "Kelso Dunes",
+      "Kelso Depot visitor center",
+      "Cima Dome Joshua tree forest",
+      "Hole-in-the-Wall rings trail",
+      "Mitchell Caverns (if open)",
+    ],
+    foodSupport: buildFoodSupport(
+      "Baker or Barstow",
+      ["Alien Fresh Jerky (Baker novelty)", "Barstow fast-food strip"],
+      ["Mad Greek Cafe (Baker)", "Barstow dinner fallback"],
+      ["Kelso Depot visitor center", "Roadside pull-offs"],
+      "There is no food inside the preserve. Plan to eat in Baker or pack in.",
+    ),
+    lodging: buildLodging(
+      "Primitive camping (Hole-in-the-Wall or Mid Hills)",
+      "The authentic preserve experience — quiet, dark skies, minimal services",
+      "Baker or Barstow motel",
+      "Motels trade the dark-sky experience for plumbing and restaurants.",
+    ),
+    planB: buildPlanB(
+      "If heat arrives early or wind kicks up hard at the dunes",
+      "Shift to higher-elevation Hole-in-the-Wall and Mid Hills sections, or exit to Joshua Tree.",
+      "The preserve's elevation range lets you chase cooler air without leaving.",
+      "Usually 10-15°F difference between Kelso Valley and Mid Hills.",
+    ),
+    itinerary: [
+      buildItineraryDay(
+        "Day 1",
+        "Arrive via I-15 (Baker exit) with a full tank and water.",
+        "Kelso Depot visitor center for orientation.",
+        "Cima Dome Joshua tree drive in afternoon light.",
+        "Camp at Hole-in-the-Wall or motel in Baker.",
+        "Day 1 is about setting up — don't fight the heat.",
+      ),
+      buildItineraryDay(
+        "Day 2",
+        "Dawn start for Kelso Dunes while temps are low.",
+        "Depot area rest and hydration midday.",
+        "Hole-in-the-Wall rings trail in late afternoon.",
+        "Dark-sky stargazing if camping, or Baker dinner.",
+        "The main day — bracket activities around the heat curve.",
+      ),
+      buildItineraryDay(
+        "Day 3",
+        "One last dawn stop — dunes overlook or Cima Dome.",
+        "Breakfast in Baker, then exit.",
+        "Optional Mad Greek Cafe stop for the novelty.",
+        "Home with a desert trip that felt genuinely remote.",
+        "The preserve rewards respect for its emptiness — don't over-schedule.",
       ),
     ],
   },

@@ -39,6 +39,8 @@ export type PlanningState = {
   usedProfileDefaults: boolean;
 };
 
+export const MAX_COMPARE_DESTINATIONS = 4;
+
 export function getPlanningState(
   searchParams: Record<string, string | string[] | undefined>,
   preferences?: UserPreferences,
@@ -180,11 +182,51 @@ export function toComparisonQueryString(
 ) {
   const params = new URLSearchParams(toPlanningQueryString(state));
 
-  for (const slug of slugs) {
+  for (const slug of normalizeCompareSlugs(slugs)) {
     params.append("slugs", slug);
   }
 
   return params.toString();
+}
+
+export function getCompareSlugs(searchParams: Record<string, string | string[] | undefined>) {
+  return normalizeCompareSlugs(searchParams.slugs);
+}
+
+export function normalizeCompareSlugs(value: string | string[] | undefined) {
+  const values = Array.isArray(value) ? value : value ? [value] : [];
+  const unique: string[] = [];
+
+  for (const item of values) {
+    if (!item || unique.includes(item)) {
+      continue;
+    }
+    unique.push(item);
+    if (unique.length >= MAX_COMPARE_DESTINATIONS) {
+      break;
+    }
+  }
+
+  return unique;
+}
+
+export function withCompareSlugs(path: string, slugs: string[]) {
+  const selectedSlugs = normalizeCompareSlugs(slugs);
+
+  if (selectedSlugs.length === 0) {
+    return path;
+  }
+
+  const [basePath, currentQuery = ""] = path.split("?");
+  const params = new URLSearchParams(currentQuery);
+  params.delete("slugs");
+
+  for (const slug of selectedSlugs) {
+    params.append("slugs", slug);
+  }
+
+  const nextQuery = params.toString();
+  return nextQuery ? `${basePath}?${nextQuery}` : basePath;
 }
 
 export function toSavedTripQueryString(input: {

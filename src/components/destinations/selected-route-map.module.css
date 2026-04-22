@@ -1,0 +1,176 @@
+.card {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(136, 86, 208, 0.08), transparent 28%),
+    radial-gradient(circle at 82% 20%, rgba(37, 93, 108, 0.07), transparent 24%),
+    linear-gradient(180deg, rgba(253, 250, 242, 0.98), rgba(247, 244, 238, 0.98));
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.eyebrow {
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #9a6e52;
+  font-weight: 500;
+}
+
+.title {
+  font-family: var(--font-display), "Cormorant Garamond", serif;
+  font-size: clamp(1.9rem, 3.2vw, 2.5rem);
+  font-weight: 500;
+  line-height: 1.02;
+  color: var(--color-foreground);
+}
+
+.subtitle {
+  max-width: 36rem;
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: var(--color-muted);
+}
+
+.mapFrame {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0)),
+    rgba(26, 22, 18, 0.02);
+  min-height: 320px;
+}
+
+.map {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.outlineFill {
+  fill: rgba(136, 86, 208, 0.05);
+}
+
+.outlineStroke {
+  fill: none;
+  stroke: rgba(26, 22, 18, 0.22);
+  stroke-width: 0.65;
+  stroke-linejoin: round;
+}
+
+.routeGuide {
+  fill: none;
+  stroke: rgba(156, 110, 240, 0.18);
+  stroke-width: 0.8;
+  stroke-linecap: round;
+  stroke-dasharray: 5 7;
+}
+
+.routeLine {
+  fill: none;
+  stroke: rgba(136, 86, 208, 0.72);
+  stroke-width: 1.05;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 8px rgba(136, 86, 208, 0.2));
+}
+
+.originRing {
+  fill: rgba(176, 128, 96, 0.12);
+  stroke: rgba(176, 128, 96, 0.28);
+  stroke-width: 1;
+}
+
+.originDot {
+  fill: rgba(176, 128, 96, 0.95);
+}
+
+.destinationPulse {
+  fill: rgba(136, 86, 208, 0.1);
+  animation: pulse 2.5s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.destinationRing {
+  fill: rgba(136, 86, 208, 0.1);
+  stroke: rgba(136, 86, 208, 0.34);
+  stroke-width: 1;
+}
+
+.destinationDot {
+  fill: rgba(136, 86, 208, 0.96);
+}
+
+.pointLabel {
+  font-family: var(--font-body), "DM Sans", sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  fill: rgba(26, 22, 18, 0.65);
+}
+
+.pointSubLabel {
+  font-family: var(--font-body), "DM Sans", sans-serif;
+  font-size: 10px;
+  font-weight: 400;
+  fill: rgba(26, 22, 18, 0.46);
+}
+
+.summaryGrid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.summaryItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding-top: 0.35rem;
+}
+
+.summaryLabel {
+  font-size: 0.65rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #9a8878;
+  font-weight: 500;
+}
+
+.summaryValue {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--color-foreground);
+}
+
+.note {
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--color-muted);
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(0.88);
+    opacity: 0.65;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 900px) {
+  .mapFrame {
+    min-height: 260px;
+  }
+
+  .summaryGrid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}

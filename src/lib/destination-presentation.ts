@@ -36,7 +36,7 @@ const zoomByTheme: Record<VisualTheme, number> = {
 function inferVisualTheme(slug: string, destinationType: string): VisualTheme {
   if (slug === "channel-islands") return "island";
   if (slug === "mount-shasta") return "volcano";
-  if (slug === "big-bear" || slug === "tahoe") return "lake";
+  if (slug === "big-bear" || slug === "tahoe" || slug === "mono-lake") return "lake";
   if (
     destinationType.includes("desert") ||
     slug === "anza-borrego" ||
