@@ -140,7 +140,7 @@ function PeekContent({
   return (
     <>
       <div className="mb-3 overflow-hidden rounded-md">
-        <DestinationHeroImage slug={destination.slug} name={destination.name} />
+        <DestinationHeroImage slug={destination.slug} name={destination.name} surface="peek" />
       </div>
 
       <p

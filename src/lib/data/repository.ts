@@ -229,12 +229,12 @@ function mapSnapshotRowToDestination(
     fitScore,
     fitLabel,
     activities: row.activities ?? fallback.activities,
-    avoid: row.avoid_items ?? fallback.avoid,
+    avoid: fallback.avoid,
     suggestedStops: row.suggested_stops ?? fallback.suggestedStops,
-    foodSupport: row.food_support ?? fallback.foodSupport,
+    foodSupport: fallback.foodSupport,
     lodging: row.lodging ?? fallback.lodging,
-    planB: row.plan_b ?? fallback.planB,
-    itinerary: row.itinerary ?? fallback.itinerary,
+    planB: fallback.planB,
+    itinerary: fallback.itinerary,
   };
 }
 

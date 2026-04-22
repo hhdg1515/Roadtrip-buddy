@@ -2,14 +2,12 @@ import { Badge } from "@/components/ui/badge";
 import type { DecisionStatus } from "@/lib/decision-layer";
 import { cn } from "@/lib/utils";
 
-function toneClasses(level: DecisionStatus["level"], variant: "light" | "dark") {
+function toneClasses(_level: DecisionStatus["level"], variant: "light" | "dark") {
   if (variant === "dark") {
     return "bg-white/5 text-white";
   }
 
-  if (level === "block") return "bg-danger/8 text-foreground";
-  if (level === "warn") return "bg-sun/10 text-foreground";
-  return "bg-muted-soft text-foreground";
+  return "bg-[linear-gradient(180deg,rgba(250,247,241,0.98)_0%,rgba(247,242,234,0.92)_100%)] text-foreground";
 }
 
 function badgeTone(level: DecisionStatus["level"]) {
@@ -43,12 +41,13 @@ export function DecisionStatusCard({
   compact?: boolean;
   className?: string;
 }>) {
-  const visibleSignals = compact ? decision.signals.slice(0, 2) : decision.signals.slice(0, 3);
+  const visibleSignals = compact ? decision.signals.slice(0, 2) : decision.signals.slice(0, 2);
+  const headline = headlineForLevel(decision.level);
 
   return (
     <div
       className={cn(
-        "rounded-lg p-4",
+        "rounded-[18px] p-5",
         toneClasses(decision.level, variant),
         className,
       )}
@@ -56,24 +55,21 @@ export function DecisionStatusCard({
       <div className="flex items-start justify-between gap-3">
         <div className="space-y-1.5">
           <DecisionStatusBadge decision={decision} />
-          <h3 className="text-base font-semibold">{decision.headline}</h3>
+          <h3 className={cn("text-lg font-semibold leading-6", headlineToneClasses(decision.level, variant))}>
+            {headline}
+          </h3>
         </div>
       </div>
 
-      <p className={cn("mt-2 text-sm leading-6", variant === "dark" ? "text-white/80" : "text-muted")}>
-        {decision.guidance}
-      </p>
-
       {visibleSignals.length > 0 ? (
-        <ul className="mt-3 space-y-1.5 text-sm leading-6">
+        <ul className="mt-4 space-y-2 text-sm leading-5">
           {visibleSignals.map((signal) => (
-            <li
-              key={`${signal.level}-${signal.label}-${signal.detail}`}
-              className={cn(variant === "dark" ? "text-white/80" : "text-foreground")}
-            >
-              <span className="font-medium">{signal.label}:</span>{" "}
-              <span className={cn(variant === "dark" ? "text-white/70" : "text-muted")}>
-                {signal.detail}
+            <li key={`${signal.level}-${signal.label}-${signal.detail}`} className="grid grid-cols-[72px_1fr] gap-3">
+              <span className={cn("text-xs", variant === "dark" ? "text-white/60" : "text-muted")}>
+                {compactSignalLabel(signal)}
+              </span>
+              <span className={cn(variant === "dark" ? "text-white/88" : "text-foreground")}>
+                {compactSignalValue(signal)}
               </span>
             </li>
           ))}
@@ -81,4 +77,57 @@ export function DecisionStatusCard({
       ) : null}
     </div>
   );
+}
+
+function headlineToneClasses(level: DecisionStatus["level"], variant: "light" | "dark") {
+  if (variant === "dark") {
+    return "text-white";
+  }
+
+  if (level === "block") return "text-danger";
+  if (level === "warn") return "text-sun";
+  return "text-[#335c50]";
+}
+
+function headlineForLevel(level: DecisionStatus["level"]) {
+  if (level === "block") return "Access blocked";
+  if (level === "warn") return "Check access first";
+  return "No hard blockers";
+}
+
+function compactSignalLabel(signal: DecisionStatus["signals"][number]) {
+  if (signal.source === "route") return "Route";
+  if (signal.source === "fire") return "Fire";
+  if (signal.source === "park") return "Park";
+
+  if (signal.source === "weather") {
+    if (/heat risk/i.test(signal.detail)) return "Heat";
+    if (/snow risk/i.test(signal.detail)) return "Snow";
+    if (/peak wind/i.test(signal.detail)) return "Wind";
+    if (/precipitation risk/i.test(signal.detail)) return "Rain";
+    return "Weather";
+  }
+
+  return "Alert";
+}
+
+function compactSignalValue(signal: DecisionStatus["signals"][number]) {
+  const detail = signal.detail.replace(/\.$/, "");
+
+  const heatMatch = detail.match(/Heat risk is (.+)/i);
+  if (heatMatch) return heatMatch[1];
+
+  const snowMatch = detail.match(/Snow risk is (.+)/i);
+  if (snowMatch) return snowMatch[1];
+
+  const windMatch = detail.match(/Peak wind is (.+)/i);
+  if (windMatch) return windMatch[1];
+
+  const rainMatch = detail.match(/Precipitation risk is (.+)/i);
+  if (rainMatch) return rainMatch[1];
+
+  const forecastMatch = detail.match(/Forecast is roughly (.+)/i);
+  if (forecastMatch) return forecastMatch[1];
+
+  return detail;
 }

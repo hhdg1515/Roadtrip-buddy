@@ -1,11 +1,16 @@
+import type { StaticImageData } from "next/image";
+import bigSurHero from "../../imgs/bigsur.jpg";
+import pointReyesHero from "../../imgs/point.jpg";
 import { destinationSeedMeta } from "@/lib/data/openseason-seed-meta";
 import type { Destination, Origin } from "@/lib/data/openseason";
 
 type VisualTheme = "coast" | "desert" | "forest" | "island" | "lake" | "sierra" | "volcano";
 
 type Presentation = {
-  heroSrc: string;
+  heroSrc: string | StaticImageData;
   heroAlt: string;
+  heroPosition: string;
+  cardPosition: string;
   latitude: number;
   longitude: number;
   mapEmbedUrl: string;
@@ -31,6 +36,24 @@ const zoomByTheme: Record<VisualTheme, number> = {
   lake: 9,
   sierra: 8,
   volcano: 8,
+};
+
+const destinationVisualOverride: Record<
+  string,
+  Partial<Pick<Presentation, "heroSrc" | "heroAlt" | "heroPosition" | "cardPosition">>
+> = {
+  "big-sur-carmel": {
+    heroSrc: bigSurHero,
+    heroAlt: "Big Sur coastline near Carmel",
+    heroPosition: "center 56%",
+    cardPosition: "center 58%",
+  },
+  "point-reyes": {
+    heroSrc: pointReyesHero,
+    heroAlt: "Point Reyes shoreline and bluffs",
+    heroPosition: "center 54%",
+    cardPosition: "center 57%",
+  },
 };
 
 function inferVisualTheme(slug: string, destinationType: string): VisualTheme {
@@ -100,12 +123,15 @@ export function getDestinationPresentation(slug: string, name: string): Presenta
   }
 
   const theme = inferVisualTheme(slug, meta.destinationType);
+  const visualOverride = destinationVisualOverride[slug];
   const zoom = zoomByTheme[theme];
   const { mapEmbedUrl, mapLinkUrl } = buildOpenStreetMapUrls(meta.latitude, meta.longitude, zoom);
 
   return {
-    heroSrc: visualThemeAsset[theme],
-    heroAlt: `${name} scenic cover art`,
+    heroSrc: visualOverride?.heroSrc ?? visualThemeAsset[theme],
+    heroAlt: visualOverride?.heroAlt ?? `${name} scenic cover art`,
+    heroPosition: visualOverride?.heroPosition ?? "center center",
+    cardPosition: visualOverride?.cardPosition ?? visualOverride?.heroPosition ?? "center center",
     latitude: meta.latitude,
     longitude: meta.longitude,
     mapEmbedUrl,

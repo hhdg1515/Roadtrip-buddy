@@ -1,18 +1,7 @@
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
-import type {
-  Destination,
-  DrivingTolerance,
-  Origin,
-  TripFormat,
-  TripLength,
-} from "@/lib/data/openseason";
+import type { Destination, Origin } from "@/lib/data/openseason";
 import { getDestinationPresentation } from "@/lib/destination-presentation";
-import {
-  labelDrivingTolerance,
-  labelOrigin,
-  labelTripFormat,
-  labelTripLength,
-} from "@/lib/planning";
+import { labelOrigin } from "@/lib/planning";
 import styles from "./selected-route-map.module.css";
 
 const CALIFORNIA_OUTLINE: Array<[number, number]> = [
@@ -152,15 +141,9 @@ function getPointLabelPosition(x: number, y: number, side: "left" | "right"): Po
 export function SelectedRouteMap({
   destination,
   origin,
-  tripLength,
-  tripFormat,
-  drivingTolerance,
 }: Readonly<{
   destination: Destination;
   origin: Origin;
-  tripLength: TripLength;
-  tripFormat: TripFormat;
-  drivingTolerance: DrivingTolerance;
 }>) {
   const presentation = getDestinationPresentation(destination.slug, destination.name);
 
@@ -215,12 +198,8 @@ export function SelectedRouteMap({
         <h2 className={styles.title}>
           {labelOrigin(origin)} → {destination.name}
         </h2>
-        <p className={styles.subtitle}>
-          A compact California route view for this trip brief. The detailed access map below still
-          handles exact roads and local orientation.
-        </p>
       </CardHeader>
-      <CardBody className="space-y-4">
+      <CardBody>
         <div className={styles.mapFrame}>
           <svg
             viewBox={`0 0 ${VIEWPORT.width} ${VIEWPORT.height}`}
@@ -290,30 +269,6 @@ export function SelectedRouteMap({
             </text>
           </svg>
         </div>
-
-        <div className={styles.summaryGrid}>
-          <div className={styles.summaryItem}>
-            <span className={styles.summaryLabel}>Drive</span>
-            <span className={styles.summaryValue}>
-              {destination.driveHours[origin]}h from {labelOrigin(origin)}
-            </span>
-          </div>
-          <div className={styles.summaryItem}>
-            <span className={styles.summaryLabel}>Trip shape</span>
-            <span className={styles.summaryValue}>
-              {labelTripLength(tripLength)} · {labelTripFormat(tripFormat)}
-            </span>
-          </div>
-          <div className={styles.summaryItem}>
-            <span className={styles.summaryLabel}>Road rhythm</span>
-            <span className={styles.summaryValue}>{labelDrivingTolerance(drivingTolerance)}</span>
-          </div>
-        </div>
-
-        <p className={styles.note}>
-          This is the high-level route relationship. Use the practical map and road-condition cards
-          below for exact access decisions.
-        </p>
       </CardBody>
     </Card>
   );

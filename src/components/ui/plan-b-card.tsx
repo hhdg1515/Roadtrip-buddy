@@ -21,31 +21,30 @@ export function PlanBCard({
   return (
     <div
       className={cn(
-        "rounded-lg p-4",
-        isDark ? "bg-white/5 text-white" : "bg-muted-soft text-foreground",
+        "rounded-[18px] p-5",
+        isDark
+          ? "bg-white/5 text-white"
+          : "bg-[linear-gradient(180deg,rgba(250,247,241,0.98)_0%,rgba(247,242,234,0.92)_100%)] text-foreground",
         className,
       )}
       role="group"
       aria-label="Plan B fallback"
     >
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center gap-3">
         <span
           className={cn(
-            "text-xs font-semibold",
-            isDark ? "text-white" : "text-sun",
+            "text-xs",
+            isDark ? "text-white" : "text-muted",
           )}
         >
           Plan B
         </span>
-        <span className={cn("text-xs", isDark ? "text-white/70" : "text-muted")}>
-          {plan.timeDifference}
-        </span>
       </div>
 
-      <dl className="mt-3 space-y-2 text-sm leading-6">
+      <dl className="mt-4 space-y-2 text-sm leading-6">
         <PlanBRow label="If" value={plan.trigger} dark={isDark} />
-        <PlanBRow label="Switch to" value={plan.alternative} dark={isDark} />
-        <PlanBRow label="Why it works" value={plan.whyItWorks} dark={isDark} />
+        <PlanBRow label="Pivot" value={plan.alternative} dark={isDark} />
+        <PlanBRow label="Why" value={plan.whyItWorks} dark={isDark} />
       </dl>
     </div>
   );
@@ -61,7 +60,7 @@ function PlanBRow({
   dark: boolean;
 }>) {
   return (
-    <div className="grid gap-1 sm:grid-cols-[100px_1fr] sm:gap-3">
+    <div className="grid gap-1 sm:grid-cols-[72px_1fr] sm:gap-3">
       <dt className={cn("text-xs", dark ? "text-white/60" : "text-muted")}>{label}</dt>
       <dd className={cn(dark ? "text-white/88" : "text-foreground")}>{value}</dd>
     </div>

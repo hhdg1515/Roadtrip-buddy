@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { DecisionStatusCard } from "@/components/ui/decision-status-card";
-import { FitScoreBadge } from "@/components/ui/fit-score-badge";
 import { FormSubmitButton } from "@/components/ui/form-submit-button";
 import { PlanBCard } from "@/components/ui/plan-b-card";
 import { RiskBadge } from "@/components/ui/risk-badge";
@@ -79,6 +78,8 @@ export default async function DestinationPage({ params, searchParams }: PageProp
   const activeAlerts = destination.activeAlerts ?? [];
   const primaryAlert = getPrimaryAlert(activeAlerts);
   const decision = getDestinationDecisionStatus(destination);
+  const companionFit =
+    planningState.groupProfile === "mixed" ? buildCompanionFit(destination) : null;
 
   return (
     <div className="space-y-10 py-8">
@@ -120,18 +121,16 @@ export default async function DestinationPage({ params, searchParams }: PageProp
         </div>
 
         <Card>
-          <CardHeader className="space-y-3">
+          <CardHeader className="space-y-0">
             <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 space-y-1">
+              <div className="min-w-0">
                 <p className="text-xs text-muted">Current decision</p>
-                <h2 className="text-lg font-semibold">{destination.bestActivity}</h2>
               </div>
               <div className="shrink-0 text-right">
                 <p className="text-3xl font-semibold tabular-nums">{contextualFitScore}</p>
                 <p className="text-xs text-muted">{contextualFitLabel}</p>
               </div>
             </div>
-            <FitScoreBadge score={contextualFitScore} showScore={false} size="sm" />
           </CardHeader>
           <CardBody className="space-y-3 text-sm leading-6">
             {weatherMetrics.length > 0 ? (
@@ -177,32 +176,24 @@ export default async function DestinationPage({ params, searchParams }: PageProp
                   Sign in to save
                 </Link>
               )}
-              {planningState.groupProfile === "mixed" ? (
-                <Link
-                  href={`/split-group/${destination.slug}?${planQueryString}`}
-                  className={buttonVariants({ variant: "secondary", size: "sm" })}
-                >
-                  Split group
-                </Link>
-              ) : null}
             </div>
           </CardBody>
         </Card>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-[1fr_1fr]">
+      <section className="grid gap-4 lg:grid-cols-[1fr_1fr] lg:items-stretch">
         <SelectedRouteMap
           destination={destination}
           origin={planningState.origin}
-          tripLength={planningState.tripLength}
-          tripFormat={planningState.tripFormat}
-          drivingTolerance={planningState.drivingTolerance}
         />
         <DestinationHeroImage
           slug={destination.slug}
           name={destination.name}
           region={destination.region}
           summary={destination.summary}
+          className="h-full"
+          fillHeight
+          framed
           priority
         />
       </section>
@@ -218,8 +209,7 @@ export default async function DestinationPage({ params, searchParams }: PageProp
 
       <section className="space-y-4">
         <div>
-          <p className="text-xs text-muted">Day by day</p>
-          <h2 className="text-2xl font-semibold">Practical itinerary</h2>
+          <h2 className="text-lg font-semibold">Day by day</h2>
         </div>
 
         <div className="grid gap-3 lg:grid-cols-3">
@@ -233,7 +223,6 @@ export default async function DestinationPage({ params, searchParams }: PageProp
                 <ItineraryRow label="Midday" value={day.midday} />
                 <ItineraryRow label="Afternoon" value={day.afternoon} />
                 <ItineraryRow label="Evening" value={day.evening} />
-                <p className="mt-2 text-xs text-muted">{day.note}</p>
               </CardBody>
             </Card>
           ))}
@@ -241,11 +230,7 @@ export default async function DestinationPage({ params, searchParams }: PageProp
       </section>
 
       <section className="space-y-3">
-        <DetailSection
-          eyebrow="Current conditions"
-          title="Weather & alerts"
-          defaultOpen
-        >
+        <DetailSection title="Conditions" defaultOpen>
           <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
             <div className="space-y-3 text-sm leading-6">
               {destination.liveWeather ? (
@@ -292,11 +277,7 @@ export default async function DestinationPage({ params, searchParams }: PageProp
           </div>
         </DetailSection>
 
-        <DetailSection
-          eyebrow="Score breakdown"
-          title="Why it lands here"
-          defaultOpen
-        >
+        <DetailSection title="Scores" defaultOpen>
           <div className="grid gap-3 md:grid-cols-2">
             {scoreRows.map(([label, score]) => (
               <ScoreBreakdownCard key={label} label={label} score={score} />
@@ -304,23 +285,20 @@ export default async function DestinationPage({ params, searchParams }: PageProp
           </div>
         </DetailSection>
 
-        <DetailSection eyebrow="Best now" title="Top activities">
+        <DetailSection title="Activities">
           <div className="grid gap-3 lg:grid-cols-2">
             {destination.activities.map((activity) => (
               <div
                 key={activity.name}
-                className="rounded-lg bg-muted-soft p-4"
+                className="rounded-[18px] bg-[linear-gradient(180deg,rgba(250,247,241,0.98)_0%,rgba(247,242,234,0.92)_100%)] p-4"
               >
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <h3 className="text-base font-semibold">{activity.name}</h3>
-                  <div className="flex flex-wrap gap-1.5">
-                    <ActivityChip
-                      label={activity.name}
-                      kind={inferActivityKind(activity.name)}
-                      size="sm"
-                    />
-                    <span className="text-xs text-muted">{activity.difficulty}</span>
-                  </div>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <ActivityChip
+                    label={activity.name}
+                    kind={inferActivityKind(activity.name)}
+                    size="sm"
+                  />
+                  <span className="text-xs text-muted">{activity.difficulty}</span>
                 </div>
                 <p className="mt-2 text-xs text-muted">Best time · {activity.bestTime}</p>
                 <p className="mt-1.5 text-sm leading-6 text-foreground">{activity.whyItFits}</p>
@@ -329,7 +307,20 @@ export default async function DestinationPage({ params, searchParams }: PageProp
           </div>
         </DetailSection>
 
-        <DetailSection eyebrow="Logistics" title="Avoids, stops, town & lodging">
+        {companionFit ? (
+          <Card>
+            <CardHeader>
+              <p className="text-xs text-muted">Companion fit</p>
+            </CardHeader>
+            <CardBody className="grid gap-4 text-sm leading-6 md:grid-cols-3">
+              <CompanionFitBlock label="Works for" value={companionFit.worksFor} />
+              <CompanionFitBlock label="Easy side" value={companionFit.easySide} />
+              <CompanionFitBlock label="Rejoin" value={companionFit.rejoin} />
+            </CardBody>
+          </Card>
+        ) : null}
+
+        <DetailSection title="Logistics">
           <div className="grid gap-5 xl:grid-cols-2">
             <div className="space-y-4">
               <div className="space-y-1.5">
@@ -359,9 +350,7 @@ export default async function DestinationPage({ params, searchParams }: PageProp
 
             <div className="space-y-4">
               <div>
-                <p className="text-xs text-muted">Food / town</p>
-                <h3 className="mt-1 text-base font-semibold">{destination.foodSupport.nearbyTown}</h3>
-                <p className="mt-1.5 text-sm leading-6 text-muted">{destination.foodSupport.note}</p>
+                <p className="text-xs text-muted">Food</p>
                 <dl className="mt-2 space-y-1 text-sm leading-6">
                   <Row label="Cafes" value={destination.foodSupport.cafes.join(" · ")} />
                   <Row label="Dinner" value={destination.foodSupport.dinner.join(" · ")} />
@@ -404,6 +393,15 @@ function ItineraryRow({ label, value }: Readonly<{ label: string; value: string 
   );
 }
 
+function CompanionFitBlock({ label, value }: Readonly<{ label: string; value: string }>) {
+  return (
+    <div>
+      <p className="text-xs text-muted">{label}</p>
+      <p className="mt-1 text-foreground">{value}</p>
+    </div>
+  );
+}
+
 function StatusNote({
   tone,
   label,
@@ -426,12 +424,10 @@ function getFirstValue(value: string | string[] | undefined) {
 }
 
 function DetailSection({
-  eyebrow,
   title,
   children,
   defaultOpen = false,
 }: Readonly<{
-  eyebrow: string;
   title: string;
   children: React.ReactNode;
   defaultOpen?: boolean;
@@ -443,7 +439,6 @@ function DetailSection({
     >
       <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
         <div>
-          <p className="text-xs text-muted">{eyebrow}</p>
           <h2 className="text-lg font-semibold text-foreground">{title}</h2>
         </div>
         <span className="text-xs text-muted group-open:hidden">Expand</span>
@@ -467,7 +462,7 @@ function ScoreBreakdownCard({
   const tone = scoreBreakdownTone(clamped);
 
   return (
-    <div className="rounded-[18px] border border-[rgba(26,22,18,0.06)] bg-[linear-gradient(180deg,rgba(250,247,241,0.98)_0%,rgba(247,242,234,0.92)_100%)] p-4">
+    <div className="rounded-[18px] bg-[linear-gradient(180deg,rgba(250,247,241,0.98)_0%,rgba(247,242,234,0.92)_100%)] p-4">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="text-sm font-medium text-foreground">{label}</p>
@@ -478,7 +473,7 @@ function ScoreBreakdownCard({
             {tone.label}
           </p>
         </div>
-        <div className="rounded-full bg-white/80 px-2.5 py-1 text-sm font-semibold tabular-nums text-[#1e1610] shadow-[0_1px_0_rgba(26,22,18,0.06)]">
+        <div className="text-sm font-semibold tabular-nums text-[#1e1610]">
           {clamped}
         </div>
       </div>
@@ -503,9 +498,6 @@ function ScoreBreakdownCard({
           />
         ))}
       </div>
-      <div className="mt-2 text-[12px] leading-5 text-[#6b5c44]">
-        {tone.note}
-      </div>
     </div>
   );
 }
@@ -515,7 +507,6 @@ function scoreBreakdownTone(score: number) {
     return {
       label: "Excellent",
       fill: "#335c50",
-      note: "A clear strength for this destination right now.",
     };
   }
 
@@ -523,7 +514,6 @@ function scoreBreakdownTone(score: number) {
     return {
       label: "Strong",
       fill: "#4d7264",
-      note: "Comfortably supports the trip without much compromise.",
     };
   }
 
@@ -531,7 +521,6 @@ function scoreBreakdownTone(score: number) {
     return {
       label: "Solid",
       fill: "#9b7656",
-      note: "Usable, but not the strongest part of the overall fit.",
     };
   }
 
@@ -539,13 +528,57 @@ function scoreBreakdownTone(score: number) {
     return {
       label: "Mixed",
       fill: "#b28f72",
-      note: "Worth noting before you commit to this destination.",
     };
   }
 
   return {
     label: "Weak",
     fill: "#9a8878",
-    note: "One of the weaker signals in the current trip setup.",
   };
+}
+
+function buildCompanionFit(destination: Awaited<ReturnType<typeof getDestinationBySlugFromRepository>>) {
+  if (!destination) {
+    return null;
+  }
+
+  const easyActivities = destination.activities.filter((activity) =>
+    /very easy|easy/i.test(activity.difficulty),
+  );
+  const easyActivity = easyActivities[0]?.name ?? destination.activities[0]?.name ?? destination.bestActivity;
+  const easySide = compactJoin([
+    easyActivity,
+    destination.foodSupport.hangouts[0] ?? destination.foodSupport.cafes[0],
+  ]);
+
+  const rejoin = compactJoin([
+    destination.foodSupport.cafes[0] ?? destination.foodSupport.dinner[0],
+    destination.foodSupport.dinner[0] ?? destination.suggestedStops[0],
+  ]);
+
+  return {
+    worksFor: companionFitLabel(destination.breakdown.groupFit),
+    easySide,
+    rejoin,
+  };
+}
+
+function companionFitLabel(groupFit: number) {
+  if (groupFit >= 88) {
+    return `Hiker + low-key companion`;
+  }
+
+  if (groupFit >= 78) {
+    return `Mixed-energy pair`;
+  }
+
+  if (groupFit >= 68) {
+    return `Flexible group, with tradeoffs`;
+  }
+
+  return `Best if everyone wants the same plan`;
+}
+
+function compactJoin(items: Array<string | undefined>) {
+  return items.filter(Boolean).slice(0, 2).join(" · ");
 }

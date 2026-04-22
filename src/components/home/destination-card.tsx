@@ -22,7 +22,7 @@ export function DestinationCard({
         href={href}
         className="group flex flex-1 flex-col transition hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(136,86,208,0.35)]"
       >
-        <DestinationHeroImage slug={destination.slug} name={destination.name} />
+        <DestinationHeroImage slug={destination.slug} name={destination.name} surface="card" />
 
         <div className="flex flex-1 flex-col gap-2 px-5 pt-4 pb-5">
           <p className="eyebrow">{destination.region}</p>
